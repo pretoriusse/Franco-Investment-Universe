@@ -1,0 +1,210 @@
+CODE,SHARE NAME,INDUSTRY,SHARES,WEIGHT,MARKET CAP,CLOSING,RSI Comparison Sector,RSI Comparison Market,Commodity,Current Price,Current Value,Next Week Prediction,Next Month Prediction,Z-Score,Overbought_Oversold,Overbought_Oversold_Value,Sector RSI 1m,Sector RSI 3m,Sector RSI 6m,Market RSI 1m,Market RSI 3m,Market RSI 6m
+MKR.JO,Montauk Renewables Inc,Alternative Energy,27.0,0.0007,2657.53,97.54,STXFIN,STXCAP,0,,,,,,,,0.99,1.29,0.72,1.0,1.42,0.91
+ABG.JO,ABSA GROUP LTD,Banks,558.0,0.0216,87133.85,156.18,STXFIN,STXCAP,0,,,,,,,,1.03,0.98,0.9,1.03,1.08,1.1
+CPI.JO,CAPITEC,Banks,58.0,0.0375999999999999,151537.4,2635.0,STXFIN,STXCAP,0,,,,,,,,1.06,1.05,1.25,1.06,1.15,1.45
+FSR.JO,FIRSTRAND,Banks,3415.0,0.0659,265419.61,77.72,STXFIN,STXCAP,0,,,,,,,,1.05,1.05,1.05,1.05,1.15,1.25
+INP.JO,INVESTECP,Banks,258.0,0.0088,35454.65,137.36,STXFIN,STXCAP,0,,,,,,,,1.03,1.01,1.02,1.03,1.11,1.22
+INL.JO,INVLTD,Banks,183.0,0.0062,25024.7,137.04,STXFIN,STXCAP,0,,,,,,,,1.03,1.01,1.01,1.03,1.11,1.21
+NED.JO,NEDBANK,Banks,307.0,0.0195,78607.14,255.82,STXFIN,STXCAP,0,,,,,,,,1.03,1.01,1.09,1.03,1.1,1.29
+SFN.JO,Sasfin Holdings,Banks,,0.0,,,STXFIN,STXCAP,0,,,,,,,,1.71,1.45,1.04,1.71,1.58,1.24
+SBK.JO,STANBANK,Banks,902.0,0.0475,191276.92,212.1,STXFIN,STXCAP,0,,,,,,,,1.02,1.06,0.97,1.02,1.16,1.17
+ANH.JO,ANHEUSER-BUSCH INBEV,Beverages,51.0,0.0137,55204.04,1077.98,STXACW,STXCAP,0,,,,,,,,1.02,0.95,,1.0,0.95,1.06
+IVT.JO,Invicta,Capital Goods,,0.0,,,STXFIN,STXCAP,0,,,,,,,,1.14,1.06,1.09,1.15,1.16,1.29
+AFE.JO,AECI,Chemicals,73.0,0.002,7907.98,107.79,STXFIN,STXCAP,0,,,,,,,,0.89,0.88,0.85,0.89,0.97,1.05
+OMN.JO,OMNIA,Chemicals,115.0,0.002,7991.29,69.54,STXFIN,STXCAP,0,,,,,,,,0.99,1.08,0.93,1.0,1.19,1.13
+SOL.JO,SASOL,Chemicals,393.0,0.0139,56069.17,142.6,STXFIN,STXCAP,0,,,,,,,,1.05,0.95,0.8,1.05,1.04,1.0
+AEG.JO,Aveng,Construction & Materials,,0.0,,,STXFIN,STXCAP,0,,,,,,,,1.19,1.18,1.01,1.19,1.29,1.21
+BIK.JO,Brikcor,Construction & Materials,,0.0,,,STXFIN,STXCAP,0,,,,,,,,1.06,0.82,74.9,1.06,0.9,76.3
+HLM.JO,Hulamin,Construction & Materials,,0.0,,,STXFIN,STXCAP,0,,,,,,,,1.09,1.36,1.3,1.09,1.49,1.5
+MDI.JO,Master Drilling,Construction & Materials,,0.0,,,STXFIN,STXCAP,0,,,,,,,,1.01,0.91,0.91,1.01,0.99,1.11
+PPC.JO,PPC,Construction & Materials,857.0,0.0008,3221.73,3.76,STXFIN,STXCAP,0,,,,,,,,1.12,0.98,0.92,1.12,1.08,1.12
+RBX.JO,RAUBEX GROUP LTD,Construction & Materials,115.0,0.0013,5362.68,46.5,STXFIN,STXCAP,0,,,,,,,,1.1,1.28,1.35,1.1,1.4,1.55
+SEP.JO,Sephaku,Construction & Materials,,0.0,,,STXFIN,STXCAP,0,,,,,,,,1.2,1.25,1.42,1.2,1.37,1.63
+SSK.JO,Stefanutti Stocks,Construction & Materials,,0.0,,,STXFIN,STXCAP,0,,,,,,,,1.6,2.19,2.01,1.6,2.4,2.23
+WBO.JO,WBHOVCO,Construction & Materials,37.0,0.0016,6490.17,175.0,STXFIN,STXCAP,0,,,,,,,,1.11,1.17,1.26,1.11,1.28,1.46
+ADH.JO,ADVTECH,Consumer Services,351.0,0.0026,10526.51,29.95,STXFIN,STXCAP,0,,,,,,,,1.05,0.93,1.01,1.05,1.02,1.21
+COH.JO,CURRO HOLDINGS LTD,Consumer Services,328.0,0.001,3885.51,11.85,STXFIN,STXCAP,0,,,,,,,,1.06,0.98,0.9,1.06,1.07,1.1
+SDO.JO,Stadio,Consumer Services,,0.0,,,STXFIN,STXCAP,0,,,,,,,,1.06,0.99,1.0,1.06,1.09,1.2
+RLO.JO,REUNERT,Electronics & Electrical Equipment,105.0,0.0019,7577.53,72.39,STXFIN,STXCAP,0,,,,,,,,1.0,0.94,1.08,1.01,1.03,1.28
+STX40.JO,Satrix 40,ETF,,0.0,,,STXFIN,STXCAP,0,,,,,,,,0.98,0.91,0.98,0.99,1.0,1.18
+STXCAP.JO,Satrix Capped All Share,ETF,,0.0,,,STXCAP,STXCAP,0,,,,,,,,1.0,1.0,1.0,1.0,1.0,1.18
+STXFIN.JO,Satrix FINI,ETF,,0.0,,,STXFIN,STXCAP,0,,,,,,,,1.0,1.0,1.0,1.0,1.1,1.2
+STXMMT.JO,Satrix Momentum EFT,ETF,,0.0,,,STXMMT,STXCAP,0,,,,,,,,1.0,1.0,1.0,1.01,1.02,1.19
+STXACW.JO,SATRIX MSCI ACWI,ETF,,0.0,,,STXACW,STXCAP,0,,,,,,,,1.0,1.0,,0.98,0.99,
+STXRES.JO,Satrix Resources 10,ETF,,0.0,,,STXRES,STXCAP,0,,,,,,,,1.0,1.0,1.0,1.0,0.91,1.23
+STXPRO.JO,Satrix Property,ETF,,0.0,,,STXPRO,STXCAP,0,,,,,,,,1.0,1.0,1.0,0.98,1.04,1.14
+STXGOV.JO,Satrix SA Bond,ETF,,0.0,,,STXGOV,STXCAP,0,,,,,,,,1.0,1.0,1.0,1.02,1.06,1.14
+FGL.JO,Finbond Group,Finance and Credit Services,,0.0,,,STXFIN,STXCAP,0,,,,,,,,0.87,1.14,1.91,0.87,1.25,2.13
+TCP.JO,TRANSACTION CAPITAL LTD,Finance and Credit Services,409.0,0.0003,1187.33,2.9,STXFIN,STXCAP,0,,,,,,,,0.98,0.93,0.32,0.98,1.02,0.51
+VUN.JO,Vunani,Finance and Credit Services,,0.0,,,STXFIN,STXCAP,0,,,,,,,,0.89,0.88,0.65,0.89,0.96,0.85
+ARL.JO,ASTRAL,Food Producers,25.0,0.0011,4349.38,171.85,STXFIN,STXCAP,0,,,,,,,,1.03,1.0,0.97,1.03,1.1,1.17
+AVI.JO,AVI LIMITED,Food Producers,224.0,0.0053,21544.49,95.99,STXFIN,STXCAP,0,,,,,,,,1.01,0.99,1.05,1.01,1.08,1.26
+CKS.JO,Crookes Brothers,Food Producers,,0.0,,,STXFIN,STXCAP,0,,,,,,,,1.2,1.25,1.0,1.2,1.37,1.2
+LBR.JO,Libstar Holdings,Food Producers,,0.0,,,STXFIN,STXCAP,0,,,,,,,,0.97,0.85,1.06,0.97,0.94,1.26
+OCE.JO,OCEANA,Food Producers,59.0,0.001,4187.89,71.49,STXFIN,STXCAP,0,,,,,,,,0.93,0.81,0.85,0.93,0.89,1.05
+QFH.JO,Quantum Food,Food Producers,,0.0,,,STXFIN,STXCAP,0,,,,,,,,0.67,0.57,2.14,0.67,0.63,2.36
+RBO.JO,Rainbow Chicken,Food Producers,,0.0,,,STXFIN,STXCAP,0,,,,,,,,0.83,,,0.83,,
+RFG.JO,RFG Holdings,Food Producers,,0.0,,,STXFIN,STXCAP,0,,,,,,,,0.98,1.02,1.02,0.98,1.12,1.22
+SHG.JO,Sea Harvest,Food Producers,,0.0,,,STXFIN,STXCAP,0,,,,,,,,1.0,0.92,0.81,1.0,1.01,1.01
+TBS.JO,TIGBRANDS,Food Producers,106.0,0.0056,22486.02,212.0,STXFIN,STXCAP,0,,,,,,,,1.09,0.96,0.94,1.09,1.05,1.14
+AEL.JO,Altron,General Industrials,,0.0,,,STXFIN,STXCAP,0,,,,,,,,1.14,1.25,1.49,1.14,1.37,1.69
+ART.JO,Argent,General Industrials,,0.0,,,STXFIN,STXCAP,0,,,,,,,,1.04,1.05,1.3,1.04,1.16,1.5
+BAW.JO,BARWORLD,General Industrials,122.0,0.0027,10983.75,89.72,STXFIN,STXCAP,0,,,,,,,,1.0,0.89,1.08,1.0,0.97,1.28
+BEL.JO,Bell,General Industrials,,0.0,,,STXFIN,STXCAP,0,,,,,,,,1.69,1.62,1.9,1.7,1.78,2.11
+BVT.JO,BIDVEST GROUP LIMITED,General Industrials,229.0,0.0162,65250.09,284.99,STXFIN,STXCAP,0,,,,,,,,0.96,0.97,1.0,0.96,1.06,1.2
+BCF.JO,Bowler Metcalf,General Industrials,,0.0,,,STXFIN,STXCAP,0,,,,,,,,1.0,0.91,0.97,1.0,0.99,1.17
+CAC.JO,CAFCA,General Industrials,,0.0,,,STXFIN,STXCAP,0,,,,,,,,0.98,1.38,1.81,0.98,1.51,2.02
+ENX.JO,ENX Group,General Industrials,,0.0,,,STXFIN,STXCAP,0,,,,,,,,0.55,0.53,0.55,0.55,0.58,0.74
+ISB.JO,Insimbi,General Industrials,,0.0,,,STXFIN,STXCAP,0,,,,,,,,0.96,0.96,0.74,0.96,1.06,0.94
+KAP.JO,KAP INDUSTRIAL HOLDINGS LTD,General Industrials,1649.0,0.0012,4700.99,2.85,STXFIN,STXCAP,0,,,,,,,,1.03,1.02,1.22,1.03,1.12,1.43
+MTA.JO,Metair Holdings,General Industrials,,0.0,,,STXFIN,STXCAP,0,,,,,,,,1.25,1.03,0.86,1.25,1.13,1.06
+MNP.JO,MONDI PLC,General Industrials,127.0,0.0111,44798.51,353.66,STXFIN,STXCAP,0,,,,,,,,1.02,0.9,1.0,1.02,0.99,1.2
+MPT.JO,Mpact,General Industrials,,0.0,,,STXFIN,STXCAP,0,,,,,,,,1.11,0.96,0.88,1.11,1.05,1.08
+MUR.JO,Murray& Roberts,General Industrials,,0.0,,,STXFIN,STXCAP,0,,,,,,,,1.24,1.93,1.88,1.24,2.12,2.09
+NPK.JO,Nampak,General Industrials,,0.0,,,STXFIN,STXCAP,0,,,,,,,,1.5,1.96,1.94,1.5,2.15,2.16
+NVS.JO,Novus,General Industrials,,0.0,,,STXFIN,STXCAP,0,,,,,,,,0.97,1.09,1.06,0.97,1.19,1.26
+SOH.JO,South Ocean Holdings,General Industrials,,0.0,,,STXFIN,STXCAP,0,,,,,,,,1.49,1.68,1.93,1.5,1.84,2.15
+TPC.JO,Transpaco,General Industrials,,0.0,,,STXFIN,STXCAP,0,,,,,,,,1.1,1.01,1.02,1.1,1.11,1.22
+TRL.JO,Trellidor,General Industrials,,0.0,,,STXFIN,STXCAP,0,,,,,,,,0.91,1.15,0.91,0.91,1.26,1.11
+TRE.JO,Trencor,General Industrials,,0.0,,,STXFIN,STXCAP,0,,,,,,,,0.98,0.88,0.94,0.98,0.97,1.14
+LHC.JO,LIFE HEALTHCARE GROUP,Health Care Providers,957.0,0.003,12059.76,12.6,STXFIN,STXCAP,0,,,,,,,,0.98,1.04,0.63,0.98,1.14,0.82
+NTC.JO,NETCARE,Health Care Providers,937.0,0.0029,11701.82,12.49,STXFIN,STXCAP,0,,,,,,,,0.92,0.9,0.76,0.92,0.98,0.96
+SAP.JO,SAPPI,Industrial Materials,402.0,0.0052,21047.59,52.42,STXFIN,STXCAP,0,,,,,,,,1.1,0.93,1.11,1.1,1.02,1.31
+YRK.JO,York Timber,Industrial Materials,,0.0,,,STXFIN,STXCAP,0,,,,,,,,1.29,1.15,1.11,1.29,1.26,1.31
+ARI.JO,AFRICAN RAINBOW,Industrial Metals & Mining,69.0,0.0039,15716.37,228.71,STXRES,STXCAP,0,,,,,,,,0.95,1.13,1.04,0.95,1.03,1.27
+AFT.JO,AFRIMAT LTD,Industrial Metals & Mining,79.0,0.0014,5794.38,73.07,STXRES,STXCAP,0,,,,,,,,0.95,1.1,0.92,0.94,1.0,1.15
+AGL.JO,ANGLO,Industrial Metals & Mining,278.0,0.0383,154135.89,554.01,STXRES,STXCAP,0,,,,,,,,0.89,0.87,1.03,0.89,0.79,1.26
+BHG.JO,BHP Group Limited,Industrial Metals & Mining,128.0,0.0168,67662.05,528.5,STXRES,STXCAP,0,,,,,,,,0.95,1.0,0.76,0.94,0.91,0.98
+GLN.JO,GLENCORE PLC,Industrial Metals & Mining,412.0,0.0113,45482.8,110.46,STXRES,STXCAP,0,,,,,,,,0.96,0.98,0.9,0.96,0.89,1.13
+KIO.JO,KUMBA IRON ORE LTD,Industrial Metals & Mining,37.0,0.0042,16904.86,460.63,STXRES,STXCAP,0,,,,,,,,0.9,0.89,0.65,0.9,0.81,0.86
+S32.JO,SOUTH32 LTD,Industrial Metals & Mining,211.0,0.0024,9536.06,45.24,STXRES,STXCAP,0,,,,,,,,0.78,0.89,0.77,0.78,0.8,0.99
+HDC.JO,HUDACO,Industrial Support Services,22.0,0.001,3884.65,179.5,STXFIN,STXCAP,0,,,,,,,,0.98,0.93,1.01,0.99,1.02,1.21
+FTH.JO,Frontier Transport,Industrial Transportation,,0.0,,,STXFIN,STXCAP,0,,,,,,,,1.12,1.05,0.95,1.12,1.15,1.15
+GND.JO,GRINDROD,Industrial Transportation,391.0,0.0015,6179.09,15.81,STXFIN,STXCAP,0,,,,,,,,1.06,1.04,1.17,1.06,1.14,1.37
+SNV.JO,Santova,Industrial Transportation,,0.0,,,STXFIN,STXCAP,0,,,,,,,,1.02,0.95,0.92,1.02,1.04,1.11
+SPG.JO,SUPER GROUP,Industrial Transportation,216.0,0.0016,6338.94,29.32,STXFIN,STXCAP,0,,,,,,,,1.04,0.93,0.96,1.04,1.02,1.16
+ACT.JO,Afrocentric,Investment Banking and Brokerage Service,,0.0,,,STXFIN,STXCAP,0,,,,,,,,0.94,0.87,0.81,0.94,0.96,1.0
+AFH.JO,ALEXANDER FORBES GROUP HOLDINGS,Investment Banking and Brokerage Service,103.0,0.0002,752.53,7.31,STXFIN,STXCAP,0,,,,,,,,0.92,0.92,0.94,0.92,1.01,1.14
+AIL.JO,Arfican Rainbow Investements,Investment Banking and Brokerage Service,,0.0,,,STXFIN,STXCAP,0,,,,,,,,0.94,1.04,1.12,0.94,1.14,1.32
+BAT.JO,Brait,Investment Banking and Brokerage Service,,0.0,,,STXFIN,STXCAP,0,,,,,,,,0.87,0.53,0.39,0.87,0.58,0.58
+CML.JO,CORONATION MANAGER F,Investment Banking and Brokerage Service,160.0,0.0015,5993.41,37.35,STXFIN,STXCAP,0,,,,,,,,1.04,1.07,1.09,1.04,1.17,1.29
+EPE.JO,EPE Capital,Investment Banking and Brokerage Service,,0.0,,,STXFIN,STXCAP,0,,,,,,,,0.86,0.89,0.71,0.87,0.97,0.9
+GPL.JO,Grand Parade Investements,Investment Banking and Brokerage Service,,0.0,,,STXFIN,STXCAP,0,,,,,,,,1.03,0.93,1.14,1.04,1.02,1.34
+HCI.JO,HCI,Investment Banking and Brokerage Service,29.0,0.0013,5205.71,179.58,STXFIN,STXCAP,0,,,,,,,,1.09,0.96,0.98,1.09,1.05,1.18
+JSE.JO,JSE,Investment Banking and Brokerage Service,59.0,0.0016,6313.99,106.5,STXFIN,STXCAP,0,,,,,,,,0.97,1.09,1.11,0.97,1.19,1.31
+NY1.JO,Ninety One Limited,Investment Banking and Brokerage Service,150.0,0.0015,5904.26,39.44,STXFIN,STXCAP,0,,,,,,,,1.0,0.88,0.85,1.0,0.97,1.05
+N91.JO,Ninety One Plc,Investment Banking and Brokerage Service,123.0,0.0012,4909.47,39.88,STXFIN,STXCAP,0,,,,,,,,1.0,0.88,0.86,1.01,0.97,1.06
+KST.JO,PSG KONSULT LTD,Investment Banking and Brokerage Service,697.0,0.0031,12360.01,17.74,STXFIN,STXCAP,0,,,,,,,,0.98,0.98,0.97,0.98,1.08,1.17
+PPE.JO,Purple,Investment Banking and Brokerage Service,,0.0,,,STXFIN,STXCAP,0,,,,,,,,0.96,0.83,1.13,0.96,0.91,1.33
+QLT.JO,QUILTER PLC,Investment Banking and Brokerage Service,581.0,0.004,16037.65,27.58,STXFIN,STXCAP,0,,,,,,,,1.03,1.01,1.08,1.03,1.11,1.28
+RNI.JO,REINET INVESTMENTS SCA,Investment Banking and Brokerage Service,90.0,0.0102,40947.74,454.6,STXACW,STXCAP,0,,,,,,,,1.01,1.02,,0.99,1.01,1.09
+REM.JO,REMGRO,Investment Banking and Brokerage Service,339.0,0.0116,46907.1,138.44,STXFIN,STXCAP,0,,,,,,,,0.98,0.96,0.77,0.98,1.05,0.97
+RMH.JO,RMB Holdings,Investment Banking and Brokerage Service,,0.0,,,STXFIN,STXCAP,0,,,,,,,,0.98,0.9,0.91,0.98,0.99,1.11
+SBP.JO,Sabvest,Investment Banking and Brokerage Service,,0.0,,,STXFIN,STXCAP,0,,,,,,,,1.04,0.94,0.9,1.04,1.03,1.1
+SYG.JO,Sygnia,Investment Banking and Brokerage Service,,0.0,,,STXFIN,STXCAP,0,,,,,,,,0.95,0.88,1.0,0.95,0.97,1.21
+ZED.JO,Zeder,Investment Banking and Brokerage Service,,0.0,,,STXFIN,STXCAP,0,,,,,,,,1.01,0.91,0.99,1.01,0.99,1.19
+CLI.JO,Clientele,Life Insurance,,0.0,,,STXFIN,STXCAP,0,,,,,,,,0.97,0.95,0.82,0.97,1.04,1.02
+DSY.JO,DISCOVERY,Life Insurance,362.0,0.0125,50248.07,138.7,STXFIN,STXCAP,0,,,,,,,,1.03,1.02,0.9,1.04,1.12,1.1
+MTM.JO,MTM MOMENTUM METROPOLITAN HOLDINGS LTD,Life Insurance,779.0,0.0045,18106.79,23.25,STXFIN,STXCAP,0,,,,,,,,1.05,1.01,1.04,1.05,1.11,1.24
+OMU.JO,OLD MUTUAL LTD,Life Insurance,2941.0,0.0092,36884.29,12.54,STXFIN,STXCAP,0,,,,,,,,0.97,0.97,0.86,0.97,1.06,1.06
+SLM.JO,SANLAM,Life Insurance,1174.0,0.0239,96405.72,82.14,STXFIN,STXCAP,0,,,,,,,,0.99,1.03,1.0,0.99,1.13,1.2
+AME.JO,Africa media Entertainment,Media,,0.0,,,STXFIN,STXCAP,0,,,,,,,,0.89,1.08,1.32,0.89,1.18,1.52
+CAT.JO,Caxton,Media,,0.0,,,STXFIN,STXCAP,0,,,,,,,,0.98,0.85,0.87,0.98,0.93,1.07
+EMH.JO,E-Media,Media,,0.0,,,STXFIN,STXCAP,0,,,,,,,,0.95,0.78,0.91,0.95,0.85,1.11
+OUT.JO,OUTSURANCE,Nonlife Insurance,574.0,0.0067,27121.55,47.25,STXFIN,STXCAP,0,,,,,,,,1.0,1.01,1.01,1.0,1.11,1.21
+SNT.JO,SANTAM,Nonlife Insurance,27.0,0.0022,8910.41,329.66,STXFIN,STXCAP,0,,,,,,,,1.01,0.94,1.01,1.01,1.03,1.21
+EXX.JO,EXXARO RESOURCES LTD,Oil & Gas and Coal,163.0,0.0078,31388.39,192.6,STXRES,STXCAP,0,,,,,,,,1.08,1.13,0.91,1.08,1.03,1.14
+TGA.JO,Thungela Resources Ltd,Oil & Gas and Coal,75.0,0.0021,8536.44,113.76,STXRES,STXCAP,0,,,,,,,,1.04,0.96,0.87,1.04,0.87,1.1
+BID.JO,BID CORP LTD,Personal Care Drug and Grocery Stores,225.0,0.0237,95558.11,425.17,STXACW,STXCAP,0,,,,,,,,1.04,1.01,,1.02,1.0,1.09
+CLS.JO,CLICKS GROUP,Personal Care Drug and Grocery Stores,161.0,0.0134,54039.71,336.6,STXFIN,STXCAP,0,,,,,,,,1.0,1.01,1.03,1.0,1.11,1.23
+DCP.JO,DIS-CHEM,Personal Care Drug and Grocery Stores,291.0,0.0025,9882.11,33.95,STXFIN,STXCAP,0,,,,,,,,1.06,0.95,1.07,1.06,1.04,1.28
+PIK.JO,PIK N PAY,Personal Care Drug and Grocery Stores,249.0,0.0017,6684.26,26.8,STXFIN,STXCAP,0,,,,,,,,0.92,1.01,0.9,0.92,1.11,1.1
+SHP.JO,SHOPRITE,Personal Care Drug and Grocery Stores,324.0,0.0232,93479.44,288.5,STXFIN,STXCAP,0,,,,,,,,1.03,1.02,0.98,1.03,1.12,1.18
+SPP.JO,SPAR,Personal Care Drug and Grocery Stores,131.0,0.0038,15476.19,118.5,STXFIN,STXCAP,0,,,,,,,,1.01,1.14,0.98,1.01,1.25,1.18
+CFR.JO,COMPAGNIE FINANCIERE,Personal Goods,40.0,0.0277,111535.13,2782.65,STXACW,STXCAP,0,,,,,,,,0.95,1.01,,0.93,1.0,1.09
+AIP.JO,ADCOCK INGRAM,Pharmaceuticals & Biotechnology,46.0,0.0007,2707.49,59.5,STXFIN,STXCAP,0,,,,,,,,0.97,0.94,0.96,0.97,1.03,1.16
+APN.JO,ASPEN,Pharmaceuticals & Biotechnology,261.0,0.0153,61449.02,235.44,STXFIN,STXCAP,0,,,,,,,,0.99,0.93,1.11,0.99,1.02,1.32
+ANG.JO,ANGLO GOLD ASHANTI,Precious Metals and Mining,207.0,0.0262,105762.12,511.7,STXRES,STXCAP,0,,,,,,,,1.11,1.19,1.36,1.11,1.08,1.61
+AMS.JO,ANGLOPLAT,Precious Metals and Mining,39.0,0.0062,24893.42,644.5,STXRES,STXCAP,0,,,,,,,,1.15,1.08,0.76,1.15,0.98,0.97
+DRD.JO,DRDGOLD LTD,Precious Metals and Mining,282.0,0.0012,4834.76,17.13,STXRES,STXCAP,0,,,,,,,,1.15,1.23,1.1,1.14,1.12,1.33
+GFI.JO,GOLDFIELDS LTD,Precious Metals and Mining,595.0,0.0421,169740.04,285.45,STXRES,STXCAP,0,,,,,,,,1.09,0.98,0.99,1.09,0.89,1.22
+HAR.JO,HARMONY GOLD MINING,Precious Metals and Mining,376.0,0.0165,66466.68,176.6,STXRES,STXCAP,0,,,,,,,,0.97,1.05,1.29,0.97,0.95,1.53
+IMP.JO,IMPLATS,Precious Metals and Mining,548.0,0.0129,51903.59,94.66,STXRES,STXCAP,0,,,,,,,,1.01,1.09,1.11,1.0,0.99,1.35
+NPH.JO,Northam Platinum Holdings,Precious Metals and Mining,241.0,0.0076,30636.23,127.22,STXRES,STXCAP,0,,,,,,,,1.05,1.11,0.94,1.05,1.01,1.17
+PAN.JO,PAN AFRICAN RESOURCE,Precious Metals and Mining,1068.0,0.0017,6726.23,6.3,STXRES,STXCAP,0,,,,,,,,1.08,1.2,1.36,1.08,1.09,1.6
+SSW.JO,Sibanye Stillwater Ltd,Precious Metals and Mining,1902.0,0.0101,40659.72,21.38,STXRES,STXCAP,0,,,,,,,,1.03,0.94,0.8,1.03,0.86,1.02
+FFB.JO,FORTRESS REIT LTD B,Real Estate Investment & Serv,804.0,0.0033,13204.0,16.42,STXPRO,STXCAP,0,,,,,,,,1.03,1.09,1.06,1.01,1.13,1.2
+LTE.JO,LIGHTHOUSE CAPITAL LTD,Real Estate Investment & Serv,690.0,0.0014,5519.54,8.0,STXPRO,STXCAP,0,,,,,,,,1.0,0.91,1.03,0.98,0.94,1.17
+MSP.JO,MAS REAL ESTATE INC,Real Estate Investment & Serv,301.0,0.0013,5388.85,17.91,STXPRO,STXCAP,0,,,,,,,,1.09,1.01,0.92,1.07,1.04,1.06
+NRP.JO,NEPI ROCKCASTLE PLC,Real Estate Investment & Serv,373.0,0.0121,48760.45,130.89,STXPRO,STXCAP,0,,,,,,,,1.02,0.96,1.01,1.0,1.0,1.15
+ATT.JO,ATTACQ,Real Estate Investment Trusts,465.0,0.0012,5037.97,10.84,STXPRO,STXCAP,0,,,,,,,,0.99,0.99,1.05,0.97,1.03,1.19
+BTN.JO,Burstone Group Limited,Real Estate Investment Trusts,387.0,0.0007,2774.31,7.16,STXPRO,STXCAP,0,,,,,,,,1.08,1.05,0.87,1.06,1.09,1.02
+DLT.JO,Delta Property,Real Estate Investment Trusts,,0.0,,,STXPRO,STXCAP,0,,,,,,,,1.27,1.8,1.99,1.25,1.87,2.09
+EMI.JO,EMIRA,Real Estate Investment Trusts,153.0,0.0004,1708.05,11.18,STXPRO,STXCAP,0,,,,,,,,1.02,1.04,1.19,1.0,1.08,1.32
+EQU.JO,EQUITES PROPERTY FUND LTD,Real Estate Investment Trusts,528.0,0.0018,7184.94,13.62,STXPRO,STXCAP,0,,,,,,,,1.03,1.01,0.88,1.01,1.05,1.02
+FTB.JO,FAIRVEST LIMITED B,Real Estate Investment Trusts,932.0,0.0009,3681.48,3.95,STXPRO,STXCAP,0,,,,,,,,1.01,1.04,1.03,0.99,1.08,1.17
+GRT.JO,GROWTHPOINT,Real Estate Investment Trusts,2260.0,0.0069,27635.61,12.23,STXPRO,STXCAP,0,,,,,,,,1.01,1.04,0.99,0.99,1.08,1.13
+HMN.JO,HAMMERSON PLC,Real Estate Investment Trusts,448.0,0.0008,3025.87,6.76,STXPRO,STXCAP,0,,,,,,,,1.28,1.03,1.07,1.26,1.07,1.2
+HYP.JO,HYPROP,Real Estate Investment Trusts,248.0,0.002,8117.3,32.71,STXPRO,STXCAP,0,,,,,,,,1.01,1.01,0.95,0.99,1.05,1.09
+PPR.JO,Putprop,Real Estate Investment Trusts,,0.0,,,STXPRO,STXCAP,0,,,,,,,,1.03,0.97,0.96,1.01,1.0,1.11
+RDF.JO,REDEFINE,Real Estate Investment Trusts,4600.0,0.0048,19503.97,4.24,STXPRO,STXCAP,0,,,,,,,,1.03,0.98,0.97,1.01,1.01,1.11
+RES.JO,RESILIENT REIT LIMITED,Real Estate Investment Trusts,203.0,0.0026,10284.24,50.54,STXPRO,STXCAP,0,,,,,,,,1.05,1.05,1.01,1.03,1.09,1.15
+SAC.JO,SA CORP REAL ESTATE,Real Estate Investment Trusts,1638.0,0.0011,4405.85,2.69,STXPRO,STXCAP,0,,,,,,,,1.02,0.96,1.0,1.0,1.0,1.14
+SHC.JO,Shaftesbury Capital,Real Estate Investment Trusts,85.0,0.0007,2840.55,33.3,STXPRO,STXCAP,0,,,,,,,,1.08,1.01,1.06,1.06,1.05,1.2
+SRE.JO,SIRIUS REAL ESTATE LTD,Real Estate Investment Trusts,269.0,0.0015,5931.54,22.05,STXPRO,STXCAP,0,,,,,,,,1.02,0.91,0.98,1.0,0.94,1.13
+SSS.JO,STOR-AGE PROPERTY REIT LTD,Real Estate Investment Trusts,258.0,0.0009,3445.07,13.35,STXPRO,STXCAP,0,,,,,,,,0.95,0.93,0.91,0.93,0.96,1.06
+VKE.JO,VUKILE,Real Estate Investment Trusts,667.0,0.0027,10820.81,16.22,STXPRO,STXCAP,0,,,,,,,,1.09,1.01,1.05,1.06,1.05,1.19
+AOO.JO,African and Overseas,Retailers,,0.0,,,STXFIN,STXCAP,0,,,,,,,,0.98,0.88,0.91,0.98,0.96,1.11
+CSB.JO,CASHBUILD,Retailers,15.0,0.0006,2500.45,169.78,STXFIN,STXCAP,0,,,,,,,,1.07,0.97,0.89,1.07,1.07,1.09
+CMH.JO,CMH Holdings,Retailers,,0.0,,,STXFIN,STXCAP,0,,,,,,,,0.99,0.93,0.95,0.99,1.02,1.15
+HIL.JO,Homechoice,Retailers,,0.0,,,STXFIN,STXCAP,0,,,,,,,,0.01,0.01,1.03,0.01,0.01,1.24
+ITE.JO,ITALTILE,Retailers,297.0,0.0009,3538.65,11.9,STXFIN,STXCAP,0,,,,,,,,1.07,1.09,0.9,1.07,1.2,1.1
+KAL.JO,KAL Group,Retailers,,0.0,,,STXFIN,STXCAP,0,,,,,,,,0.96,0.98,1.02,0.96,1.07,1.22
+LEW.JO,Lewis,Retailers,,0.0,,,STXFIN,STXCAP,0,,,,,,,,0.98,1.12,1.2,0.98,1.23,1.41
+MTH.JO,MOTUS HOLDINGS LTD,Retailers,99.0,0.0024,9726.47,98.72,STXFIN,STXCAP,0,,,,,,,,1.11,1.07,0.9,1.11,1.17,1.1
+MRP.JO,MR PRICE GROUP LTD,Retailers,168.0,0.0083,33520.05,199.53,STXFIN,STXCAP,0,,,,,,,,1.03,1.09,1.12,1.03,1.19,1.32
+MST.JO,Mustek,Retailers,,0.0,,,STXFIN,STXCAP,0,,,,,,,,1.28,1.23,0.91,1.28,1.35,1.11
+NWL.JO,Nuworld,Retailers,,0.0,,,STXFIN,STXCAP,0,,,,,,,,0.93,0.86,0.93,0.93,0.94,1.13
+PPH.JO,PEPKOR HOLDINGS LTD,Retailers,1767.0,0.0085,34239.5,19.38,STXFIN,STXCAP,0,,,,,,,,1.05,0.98,0.93,1.05,1.07,1.13
+RTN.JO,Rex Trueform,Retailers,,0.0,,,STXFIN,STXCAP,0,,,,,,,,98.45,0.7,66.88,98.59,0.77,68.15
+TFG.JO,THE FOSCHINI GROUP LTD,Retailers,218.0,0.007,28406.89,130.07,STXFIN,STXCAP,0,,,,,,,,1.08,1.21,1.08,1.08,1.33,1.29
+TRU.JO,TRUWORTHS,Retailers,250.0,0.0057,23005.52,91.97,STXFIN,STXCAP,0,,,,,,,,0.98,1.06,1.06,0.99,1.16,1.26
+WBC.JO,We Buy Cars,Retailers,134.0,0.0009,3458.25,25.8,STXFIN,STXCAP,0,,,,,,,,0.99,1.2,,0.99,1.32,
+WHL.JO,Woolworths,Retailers,603.0,0.0091,36597.49,60.69,STXFIN,STXCAP,0,,,,,,,,0.94,0.86,0.76,0.94,0.94,0.96
+ZZD.JO,Zeda,Retailers,,0.0,,,STXFIN,STXCAP,0,,,,,,,,1.0,0.9,0.86,1.0,0.99,1.06
+4SI.JO,4Sight,Software & Computer Services,,0.0,,,STXFIN,STXCAP,0,,,,,,,,1.05,1.03,0.82,1.05,1.13,1.02
+BYI.JO,Bytes Technology Group,Software & Computer Services,34.0,0.001,4179.73,123.93,STXFIN,STXCAP,0,,,,,,,,0.9,0.89,0.68,0.9,0.97,0.87
+DTC.JO,DATATEC,Software & Computer Services,139.0,0.0013,5262.69,37.99,STXFIN,STXCAP,0,,,,,,,,0.91,0.86,0.78,0.91,0.94,0.98
+EOH.JO,EOH,Software & Computer Services,,0.0,,,STXFIN,STXCAP,0,,,,,,,,0.93,1.14,1.05,0.93,1.25,1.25
+ISA.JO,ISA Holdings,Software & Computer Services,,0.0,,,STXFIN,STXCAP,0,,,,,,,,0.92,1.04,1.37,0.92,1.14,1.58
+MFL.JO,Metrofile,Software & Computer Services,,0.0,,,STXFIN,STXCAP,0,,,,,,,,0.84,0.78,0.68,0.84,0.85,0.88
+NPN.JO,NASPERS -N,Software & Computer Services,93.0,0.0811,326912.28,3531.13,STXACW,STXCAP,0,,,,,,,,0.98,0.93,,0.96,0.92,1.21
+PRX.JO,PROSUS NV,Software & Computer Services,170.0,0.0272,109554.3,645.0,STXACW,STXCAP,0,,,,,,,,0.97,0.98,,0.96,0.97,1.24
+SEB.JO,Sebata,Software & Computer Services,,0.0,,,STXFIN,STXCAP,0,,,,,,,,0.82,0.44,0.36,0.82,0.48,0.55
+ADR.JO,Adcorp Holdings,Support Services,,0.0,,,STXFIN,STXCAP,0,,,,,,,,1.19,0.92,1.11,1.19,1.01,1.32
+PMV.JO,Primeserv,Support Services,,0.0,,,STXFIN,STXCAP,0,,,,,,,,1.21,1.48,1.42,1.21,1.63,1.62
+WKF.JO,Workforce,Support Services,,0.0,,,STXFIN,STXCAP,0,,,,,,,,0.98,1.22,0.01,0.98,1.33,0.19
+BLU.JO,BLUE LABEL TELECOMS,Telecommunications Service Providers,330.0,0.0003,1401.32,4.24,STXFIN,STXCAP,0,,,,,,,,1.09,0.89,1.12,1.09,0.98,1.33
+CGN.JO,Cognition Holdings,Telecommunications Service Providers,,0.0,,,STXFIN,STXCAP,0,,,,,,,,0.98,0.01,0.01,0.98,0.01,0.19
+HUG.JO,Huge Group,Telecommunications Service Providers,,0.0,,,STXFIN,STXCAP,0,,,,,,,,0.9,0.88,0.85,0.9,0.96,1.04
+MTN.JO,MTN GROUP,Telecommunications Service Providers,1220.0,0.0249,100211.73,82.14,STXFIN,STXCAP,0,,,,,,,,0.91,0.74,0.73,0.91,0.81,0.93
+MCG.JO,MULTICHOICE GROUP LTD,Telecommunications Service Providers,191.0,0.005,20039.83,104.8,STXFIN,STXCAP,0,,,,,,,,1.02,0.8,1.32,1.02,0.88,1.52
+TKG.JO,TELKOM,Telecommunications Service Providers,190.0,0.0011,4533.15,23.86,STXFIN,STXCAP,0,,,,,,,,0.97,0.84,0.75,0.97,0.92,0.95
+VOD.JO,VODACOM GROUP LIMITED,Telecommunications Service Providers,405.0,0.0097,39057.97,96.52,STXFIN,STXCAP,0,,,,,,,,1.01,0.91,0.93,1.01,1.0,1.13
+BTI.JO,BRITISH AMERICAN TOBACCO PLC,Tobacco,175.0,0.0249,100481.37,575.34,STXACW,STXCAP,0,,,,,,,,1.07,1.07,,1.05,1.06,1.19
+CLH.JO,City Lodge,Travel & Leisure,,0.0,,,STXFIN,STXCAP,0,,,,,,,,1.01,0.94,0.85,1.02,1.03,1.05
+FBR.JO,FAMOUS BRANDS LTD,Travel & Leisure,59.0,0.0008,3188.34,53.82,STXFIN,STXCAP,0,,,,,,,,1.0,0.85,0.82,1.0,0.94,1.01
+SSU.JO,Southern Sun LTD,Travel & Leisure,545.0,0.0008,3092.42,5.67,STXFIN,STXCAP,0,,,,,,,,1.1,1.0,0.99,1.11,1.09,1.19
+SUR.JO,Spur,Travel & Leisure,,0.0,,,STXFIN,STXCAP,0,,,,,,,,1.05,0.97,1.0,1.05,1.06,1.2
+SUI.JO,SUN INT LTD,Travel & Leisure,118.0,0.0011,4462.67,37.68,STXFIN,STXCAP,0,,,,,,,,0.99,0.87,0.77,1.0,0.95,0.97
+TSG.JO,TSOGO SUN GAMING LIMITED,Travel & Leisure,332.0,0.0009,3816.29,11.49,STXFIN,STXCAP,0,,,,,,,,1.01,0.87,0.87,1.01,0.95,1.07
+%5ETNX,CBOE Interest Rate 10 Year T No,TBC,332.0,0.0009,3816.29,11.49,STXFIN,STXCAP,0,,,,,,,,0.98,0.83,0.94,0.98,0.9,1.15
+PA=F,Mini-Corn Futures,TBC,332.0,0.0009,3816.29,11.49,STXFIN,STXCAP,1,1198.69,1198.69,-0.14,-0.15,-1.82,-0.11,0.89,0.98,0.87,0.93,0.98,0.94,1.13
+XRH0.L,Mini-Corn Futures,TBC,332.0,0.0009,3816.29,11.49,STXFIN,STXCAP,1,1327.51,1327.51,0.2,0.22,-1.34,0.04,1.04,0.91,0.82,0.98,0.91,0.89,1.19
+CL=F,Mini-Corn Futures,TBC,332.0,0.0009,3816.29,11.49,STXFIN,STXCAP,1,189.95,189.95,0.1,0.11,-1.63,-0.07,0.93,0.93,0.87,0.95,0.93,0.94,1.15
+GC=F,Mini-Corn Futures,TBC,332.0,0.0009,3816.29,11.49,STXFIN,STXCAP,1,2554.04,2554.04,-0.06,-0.06,-0.9,-0.03,0.97,1.02,0.93,1.07,1.02,1.01,1.28
+PL=F,Mini-Corn Futures,TBC,332.0,0.0009,3816.29,11.49,STXFIN,STXCAP,1,5520.52,5520.52,0.0,0.0,-0.65,0.0,1.0,0.95,0.89,0.98,0.95,0.96,1.19
+DJP,Mini-Corn Futures,TBC,332.0,0.0009,3816.29,11.49,STXFIN,STXCAP,1,337.33,337.33,0.02,0.02,-0.55,0.03,1.03,0.94,0.86,0.93,0.94,0.93,1.13
+XC=F,Mini-Corn Futures,TBC,332.0,0.0009,3816.29,11.49,STXFIN,STXCAP,1,7332.54,,,,,,,0.96,0.79,0.84,0.96,0.86,1.04
+HG=F,Copper,TBC,332.0,0.0009,3816.29,11.49,STXFIN,STXCAP,1,75.86,,,,,,,0.93,0.81,0.99,0.93,0.87,1.2
+SB=F,Sugar futures,TBC,332.0,0.0009,3816.29,11.49,STXFIN,STXCAP,1,331.51,,,,,,,0.87,0.83,0.67,0.88,0.89,0.88

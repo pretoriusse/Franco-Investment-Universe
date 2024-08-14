@@ -1,0 +1,8 @@
+# Ignore data directory and all its contents
+data/
+
+# Ignore logs directory and all its contents
+logs/
+
+# Ignore models directory and all its contents
+models/

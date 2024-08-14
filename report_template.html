@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Report</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Stock Report</h1>
+    {% for metric, data in top_bottom_data.items() %}
+        <h2>{{ metric.replace('_', ' ') }}</h2>
+        <h3>Top 10</h3>
+        <table>
+            <tr>
+                <th>Code</th>
+                <th>Share Name</th>
+                <th>Industry</th>
+                <th>{{ metric.replace('_', ' ') }}</th>
+                <th>Current Price</th>
+            </tr>
+            {% for row in data.top_10.itertuples() %}
+            <tr>
+                <td>{{ row.CODE }}</td>
+                <td>{{ row._2 }}</td>
+                <td>{{ row.INDUSTRY }}</td>
+                <td>{{ row._asdict()[metric] }}</td>
+                <td>{{ row.current_price }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+        
+        <h3>Bottom 10</h3>
+        <table>
+            <tr>
+                <th>Code</th>
+                <th>Share Name</th>
+                <th>Industry</th>
+                <th>{{ metric.replace('_', ' ') }}</th>
+                <th>Current Price</th>
+            </tr>
+            {% for row in data.bottom_10.itertuples() %}
+            <tr>
+                <td>{{ row.CODE }}</td>
+                <td>{{ row._2 }}</td>
+                <td>{{ row.INDUSTRY }}</td>
+                <td>{{ row._asdict()[metric] }}</td>
+                <td>{{ row.current_price }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+
+        <h3>Graphs</h3>
+        <div>
+            {% for row in data.top_10.itertuples() %}
+            <h4>{{ row.CODE }} - {{ row._2 }}</h4>
+            <p>Close Prediction</p>
+            {% if row.close_prediction_img %}
+            <img src="data:image/jpeg;base64,{{ row.close_prediction_img }}" alt="Close Prediction">
+            {% endif %}
+            <p>Bollinger Bands</p>
+            {% if row.adj_bollinger_img %}
+            <img src="data:image/jpeg;base64,{{ row.adj_bollinger_img }}" alt="Bollinger Bands">
+            {% endif %}
+            <p>Overbought/Oversold</p>
+            {% if row.adj_overbought_img %}
+            <img src="data:image/jpeg;base64,{{ row.adj_overbought_img }}" alt="Overbought/Oversold">
+            {% endif %}
+            <hr>
+            {% endfor %}
+        </div>
+
+        <div>
+            {% for row in data.bottom_10.itertuples() %}
+            <h4>{{ row.CODE }} - {{ row._2 }}</h4>
+            <p>Close Prediction</p>
+            {% if row.close_prediction_img %}
+            <img src="data:image/jpeg;base64,{{ row.close_prediction_img }}" alt="Close Prediction">
+            {% endif %}
+            <p>Bollinger Bands</p>
+            {% if row.adj_bollinger_img %}
+            <img src="data:image/jpeg;base64,{{ row.adj_bollinger_img }}" alt="Bollinger Bands">
+            {% endif %}
+            <p>Overbought/Oversold</p>
+            {% if row.adj_overbought_img %}
+            <img src="data:image/jpeg;base64,{{ row.adj_overbought_img }}" alt="Overbought/Oversold">
+            {% endif %}
+            <hr>
+            {% endfor %}
+        </div>
+    {% endfor %}
+</body>
+</html>

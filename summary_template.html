@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Stock Report Summary</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        .content-wrapper {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .header img {
+            max-width: 100%;
+            height: auto;
+            max-height: 200px; /* Ensures the logo doesn't get too large */
+        }
+        h2 {
+            color: #333333;
+            border-bottom: 2px solid #dddddd;
+            padding-bottom: 5px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #dddddd;
+            text-align: left;
+            padding: 12px;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        .positive {
+            color: green;
+        }
+        .negative {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <div class="content-wrapper">
+        <div class="header">
+            <img src="https://cdn1.pretoriusse.net/CDN/Logo/Logo/cover.png" alt="Pretoriusse Logo">
+        </div>
+        
+        {% for metric, data in top_bottom_data.items() %}
+        <h2>{{ metric }}</h2>
+        <h3>Top 10</h3>
+        <table>
+            <tr>
+                <th>Ticker</th>
+                <th>Name</th>
+                <th>{{ metric }}</th>
+            </tr>
+            {% for stock in data.top %}
+            <tr>
+                <td><a href="https://finance.yahoo.com/quote/{{ stock['CODE'] }}/">{{ stock['CODE'] }}</a></td>
+                <td>{{ stock['SHARE NAME'] }}</td>
+                <td>{{ stock[metric] }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+        
+        <h3>Bottom 10</h3>
+        <table>
+            <tr>
+                <th>Ticker</th>
+                <th>Name</th>
+                <th>{{ metric }}</th>
+            </tr>
+            {% for stock in data.bottom %}
+            <tr>
+                <td><a href="https://finance.yahoo.com/quote/{{ stock['CODE'] }}/">{{ stock['CODE'] }}</a></td>
+                <td>{{ stock['SHARE NAME'] }}</td>
+                <td>{{ stock[metric] }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+        {% endfor %}
+    </div>
+</body>
+</html>
