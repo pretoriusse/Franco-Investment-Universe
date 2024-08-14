@@ -16,6 +16,7 @@ import numpy as np
 import matplotlib as mlp
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
+from keras.api import Sequential as SequentialType
 from keras.models import Sequential # type: ignore
 from keras.layers import LSTM, Dense, Dropout # type: ignore
 from tensorflow.keras.backend import clear_session # type: ignore
@@ -649,7 +650,7 @@ def train_new_model(X, y, model_dir, model_path, hparams, sanitized_ticker):
     # Create the directory if it does not exist
     os.makedirs(model_dir, exist_ok=True)
     
-    model = Sequential()
+    model: SequentialType = Sequential()
     model.add(LSTM(units=hparams['HP_LSTM_UNITS'], return_sequences=True, input_shape=(X.shape[1], 1)))
     model.add(Dropout(hparams['HP_DROPOUT']))
     model.add(LSTM(units=hparams['HP_LSTM_UNITS']))
@@ -755,7 +756,7 @@ def predict_adjusted_close_value(hist, hparams, ticker):
         
         if last_date_in_data <= last_trained_date:
             logger.info(f"No new data since last training on {last_trained_date}. Loading existing model without retraining.")
-            model = load_model(model_path)
+            model: SequentialType = load_model(model_path)
         else:
             logger.info(f"New data available since last training on {last_trained_date}. Retraining model.")
             # Subset the historical data for retraining
@@ -765,7 +766,7 @@ def predict_adjusted_close_value(hist, hparams, ticker):
             X_train, X_test, y_train, y_test = train_new_model(X_train, y_train, model_dir, model_path, hparams, sanitized_ticker)
     else:
         logger.info(f"No existing model found for ticker: {ticker} or no metadata. Creating and training a new model.")
-        model = train_new_model(X_train, y_train, model_dir, model_path, hparams, sanitized_ticker)
+        model: SequentialType = train_new_model(X_train, y_train, model_dir, model_path, hparams, sanitized_ticker)
 
     # Make predictions
     last_sequence = hist['Adj Close'].values[-seq_length:].reshape((1, seq_length, 1))
