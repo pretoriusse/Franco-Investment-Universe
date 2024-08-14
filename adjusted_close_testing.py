@@ -704,7 +704,7 @@ def train_new_model(X, y, model_dir, model_path, hparams, sanitized_ticker):
     return model
 
 
-def load_model_metadata(model_dir):
+def load_model_metadata(model_dir: str):
     metadata_path = os.path.join(model_dir, 'metadata.json')
     if os.path.exists(metadata_path):
         with open(metadata_path, 'r') as f:
@@ -712,7 +712,7 @@ def load_model_metadata(model_dir):
     return None
 
 
-def save_predictions_to_db(ticker, start_date, next_month_predictions):
+def save_predictions_to_db(ticker: str, start_date, next_month_predictions: list):
     # Generate the dates corresponding to the predictions
     prediction_dates = [start_date + timedelta(days=i) for i in range(1, len(next_month_predictions) + 1)]
 
@@ -801,7 +801,7 @@ def predict_adjusted_close_value(hist, hparams, ticker):
 
 
 # Function to fetch data and run predictions for each ticker
-def fetch_data(hparams):
+def fetch_data(hparams: dict):
     logger.info("Starting data fetch process")
     stocks_df = db_queries.fetch_stock_and_commodity_universe_from_db()
     stock_images = []
