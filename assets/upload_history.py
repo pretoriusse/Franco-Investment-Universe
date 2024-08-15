@@ -105,7 +105,6 @@ def upload_ticker(ticker, comparison_market, comparison_sector, progress: Upload
 def main():
     # Fetch stock universe from the database
     stock_universe = fetch_stock_universe_from_db()
-    print(stock_universe.head())
     if stock_universe.empty:
         logging.error("No tickers found in the database.")
         return

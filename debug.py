@@ -5,7 +5,7 @@ import os
 import base64
 
 # Load the data
-file_path = 'runs/2024-08-12 1944_adjusted_close.csv'
+file_path = 'runs/2024-08-15 1755_adjusted_close.csv'
 data = pd.read_csv(file_path)
 
 # Ensure Z-Score column is numeric and handle NaN values
@@ -26,11 +26,11 @@ data['Next_Month_Prediction_Change'] = data['Next_Month_Prediction_Change'].clip
 abnormal_changes = data[(data['Next_Week_Prediction_Change'].abs() > 1000) | (data['Next_Month_Prediction_Change'].abs() > 1000)]
 if not abnormal_changes.empty:
     print("Warning: Some percentage changes are abnormally high or low:")
-    print(abnormal_changes[['CODE', 'Next_Week_Prediction_Change', 'Next_Month_Prediction_Change']])
+    print(abnormal_changes[['code', 'Next_Week_Prediction_Change', 'Next_Month_Prediction_Change']])
 
 # Inspect data for EOH.JO
-eoh_data = data[data['CODE'] == 'EOH.JO']
-print(eoh_data[['CODE', 'Current Price', 'Next Week Prediction', 'Next Month Prediction', 'Next_Week_Prediction_Change', 'Next_Month_Prediction_Change']])
+eoh_data = data[data['code'] == 'EOH.JO']
+print(eoh_data[['code', 'Current Price', 'Next Week Prediction', 'Next Month Prediction', 'Next_Week_Prediction_Change', 'Next_Month_Prediction_Change']])
 
 # Define the metrics for which we need top 10 and bottom 10
 metrics = [
@@ -69,7 +69,7 @@ def encode_image_base64(image_path):
 for metric, data in top_bottom_data.items():
     for category in ['top_10', 'bottom_10']:
         for i, row in data[category].iterrows():
-            code = row['CODE']
+            code = row['code']
             close_prediction_img_path = os.path.join(plot_base_path, code.replace('.JO', ''), 'adj_close_prediction_compressed.jpg')
             adj_bollinger_img_path = os.path.join(plot_base_path, code.replace('.JO', ''), 'adj_bollinger_compressed.jpg')
             adj_overbought_img_path = os.path.join(plot_base_path, code.replace('.JO', ''), 'adj_overbought_oversold_compressed.jpg')
@@ -82,7 +82,7 @@ for metric, data in top_bottom_data.items():
 
 # Create the HTML template for the report
 env = Environment(loader=FileSystemLoader('.'))
-template = env.get_template('report_template.html')
+template = env.get_template('summary_template.html')
 
 # Render the HTML content with the top and bottom 10 data
 html_content = template.render(
