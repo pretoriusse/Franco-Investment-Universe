@@ -154,6 +154,13 @@ def run_training_loop(hparams):
         for index, row in df.iterrows():
             if "=" in row['code']:
                 continue
+            sanitized_ticker = sanitize_ticker(row['code'])
+            model_dir = os.path.join('models', sanitized_ticker)
+            model_path = os.path.join(model_dir, f'{sanitized_ticker}_Adjusted_Close_Model.keras')
+
+            if os.path.exists(model_path):
+                continue
+            
             check_and_train_model(row['code'], hparams)
         logger.info("Completed a full training check cycle. Sleeping for 1 hour.")
         time.sleep(1722800)
