@@ -24,12 +24,18 @@ import re
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
+os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 
 
 def make_dates_timezone_naive(data):
-    # Convert all datetime objects to timezone-naive
-    data['date'] = pd.to_datetime(data['date']).dt.tz_localize(None)
-    return data
+    try:
+        # Convert all datetime objects to timezone-naive
+        data['date'] = pd.to_datetime(data['date']).dt.tz_localize(None)
+        return data
+    except KeyError:
+        # Convert all datetime objects to timezone-naive
+        data['date'] = pd.to_datetime(data['Date']).dt.tz_localize(None)
+        return data
 
 
 def sanitize_ticker(ticker):
