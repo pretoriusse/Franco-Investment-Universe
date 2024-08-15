@@ -15,6 +15,7 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 import re
 import schedule  # Import the schedule library
+import subprocess
 
 try:
     from ..assets import database_queries as db_queries  # Importing database queries
@@ -24,6 +25,33 @@ except ImportError:
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
+
+def pull_and_merge_trained_models(branch_name="main"):
+    try:
+        # Step 1: Stash any local changes
+        subprocess.run(["git", "stash"], check=True)
+        
+        # Step 2: Pull the latest changes from the remote branch
+        subprocess.run(["git", "pull", "origin", branch_name], check=True)
+        
+        # Step 3: Merge the trained models
+        model_dir = "models/"
+        subprocess.run(["git", "add", model_dir], check=True)
+        today = datetime.now().strftime("%d/%m/%Y")
+        commit_message = f"Merge of trained models {today}"
+        subprocess.run(["git", "commit", "-m", commit_message], check=True)
+        
+        # Step 4: Push the changes back to the remote branch
+        subprocess.run(["git", "push", "origin", branch_name], check=True)
+        
+        # Step 5: Apply the stashed changes back
+        subprocess.run(["git", "stash", "pop"], check=True)
+
+        print("Successfully pulled, merged, and pushed trained models.")
+        
+    except subprocess.CalledProcessError as e:
+        print(f"Error during git operation: {e}")
+
 
 def make_dates_timezone_naive(data):
     data['date'] = pd.to_datetime(data['date']).dt.tz_localize(None)

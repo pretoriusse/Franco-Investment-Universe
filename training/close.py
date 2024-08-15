@@ -43,7 +43,8 @@ def pull_and_merge_trained_models(branch_name="main"):
         # Step 3: Merge the trained models
         model_dir = "models/"
         subprocess.run(["git", "add", model_dir], check=True)
-        commit_message = "Merge trained models into branch"
+        today = datetime.now().strftime("%d/%m/%Y")
+        commit_message = f"Merge of trained models {today}"
         subprocess.run(["git", "commit", "-m", commit_message], check=True)
         
         # Step 4: Push the changes back to the remote branch
