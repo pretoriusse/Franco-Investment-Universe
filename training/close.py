@@ -159,22 +159,16 @@ def check_and_train_model(ticker, hparams, seq_length=60):
 
 def run_training_loop(hparams):
     df: pd.DataFrame = db_queries.fetch_stock_and_commodity_universe_from_db()
-    
 
     while True:
-        threads = []
         for index, row in df.iterrows():
             if "=" in row['code']:
                 continue
-            thread = threading.Thread(target=check_and_train_model, args=(row['code'], hparams))
-            thread.start()
-            threads.append(thread)
-        
-        for thread in threads:
-            thread.join()
+            check_and_train_model(row['code'], hparams)
             
         logger.info("Completed a full training check cycle. Sleeping for 1 hour.")
-        time.sleep(1722800)
+        time.sleep(86400)  # 1 hour sleep
+
 
 if __name__ == "__main__":
     hparams = {

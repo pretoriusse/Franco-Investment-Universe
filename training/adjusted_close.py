@@ -147,12 +147,12 @@ def check_and_train_model(ticker, hparams, seq_length=60):
         train_new_model(X_train, y_train, model_dir, model_path, hparams, sanitized_ticker)
 
 def run_training_loop(hparams):
-    df: pd.DataFrame = db_queries.fetch_stock_and_commodity_universe_from_db()
+    df: pd.DataFrame = db_queries.fetch_stock_universe_from_db()
     
 
     while True:
         for index, row in df.iterrows():
-            if "=" in row['code']:
+            if "=" in row['code'] or row['commodity']:
                 continue
             sanitized_ticker = sanitize_ticker(row['code'])
             model_dir = os.path.join('models', sanitized_ticker)
@@ -160,10 +160,10 @@ def run_training_loop(hparams):
 
             if os.path.exists(model_path):
                 continue
-            
+
             check_and_train_model(row['code'], hparams)
         logger.info("Completed a full training check cycle. Sleeping for 1 hour.")
-        time.sleep(1722800)
+        time.sleep(86400)
 
 if __name__ == "__main__":
     hparams = {
