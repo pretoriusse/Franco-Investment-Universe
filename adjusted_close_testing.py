@@ -347,29 +347,30 @@ def plot_stock_adjusted_close_last_two_years(unscaled_close, ticker, next_week_p
     except Exception as e:
         logger.error(f"Error generating future dates: {e}")
         return
+    
+    if PREDICTION:
+        # Adjust prediction lengths to match dates
+        if len(next_week_dates) != len(next_week_predictions):
+            logger.warning(f"Length mismatch: next_week_dates ({len(next_week_dates)}) and next_week_predictions ({len(next_week_predictions)})")
+            if len(next_week_dates) > len(next_week_predictions):
+                next_week_dates = next_week_dates[:len(next_week_predictions)]
+            else:
+                next_week_predictions = next_week_predictions[:len(next_week_dates)]
 
-    # Adjust prediction lengths to match dates
-    if len(next_week_dates) != len(next_week_predictions):
-        logger.warning(f"Length mismatch: next_week_dates ({len(next_week_dates)}) and next_week_predictions ({len(next_week_predictions)})")
-        if len(next_week_dates) > len(next_week_predictions):
-            next_week_dates = next_week_dates[:len(next_week_predictions)]
-        else:
-            next_week_predictions = next_week_predictions[:len(next_week_dates)]
+        if len(next_month_dates) != len(next_month_predictions):
+            logger.warning(f"Length mismatch: next_month_dates ({len(next_month_dates)}) and next_month_predictions ({len(next_month_predictions)})")
+            if len(next_month_dates) > len(next_month_predictions):
+                next_month_dates = next_month_dates[:len(next_month_predictions)]
+            else:
+                next_month_predictions = next_month_predictions[:len(next_month_dates)]
 
-    if len(next_month_dates) != len(next_month_predictions):
-        logger.warning(f"Length mismatch: next_month_dates ({len(next_month_dates)}) and next_month_predictions ({len(next_month_predictions)})")
-        if len(next_month_dates) > len(next_month_predictions):
-            next_month_dates = next_month_dates[:len(next_month_predictions)]
-        else:
-            next_month_predictions = next_month_predictions[:len(next_month_dates)]
-
-    try:
-        plt.plot(next_week_dates, next_week_predictions, label='Next Week Predictions', color='cyan')
-        plt.plot(next_month_dates, next_month_predictions, label='Next Month Predictions', color='magenta')
-        logger.info(f"Plotted predictions data")
-    except Exception as e:
-        logger.error(f"Error plotting predictions data: {e}")
-        return
+        try:
+            plt.plot(next_week_dates, next_week_predictions, label='Next Week Predictions', color='cyan')
+            plt.plot(next_month_dates, next_month_predictions, label='Next Month Predictions', color='magenta')
+            logger.info(f"Plotted predictions data")
+        except Exception as e:
+            logger.error(f"Error plotting predictions data: {e}")
+            return
 
     # Date formatting for x-axis
     try:
@@ -803,7 +804,7 @@ def predict_adjusted_close_value(hist, hparams, ticker):
 # Function to fetch data and run predictions for each ticker
 def fetch_data(hparams: dict):
     logger.info("Starting data fetch process")
-    stocks_df = db_queries.fetch_stock_and_commodity_universe_from_db()
+    stocks_df = db_queries.fetch_stock_universe_from_db()
     stock_images = []
     total_value_next_week = 0
     total_value_next_month = 0
@@ -917,7 +918,7 @@ def fetch_data(hparams: dict):
             logger.error(f"Error processing {ticker}: {e}. Skipping to next ticker.")
             continue
 
-    stocks_df.drop(columns=['Commodity'], inplace=True)
+    #stocks_df.drop(columns=['Commodity'], inplace=True)
     logger.info("Data fetch process completed")
     return stocks_df, stock_images, total_value_next_week, total_value_next_month
 
@@ -1012,7 +1013,7 @@ def generate_bollinger_and_overbought_oversold_adjusted_close():
     os.makedirs(graph_dir, exist_ok=True)
 
     # Load tickers from CSV
-    df: pd.DataFrame = db_queries.fetch_stock_and_commodity_universe_from_db()
+    df: pd.DataFrame = db_queries.fetch_stock_universe_from_db()
     
     threads:list[threading.Thread] = []
     for index, row in df.iterrows():
@@ -1159,14 +1160,14 @@ def add_adjusted_close_rsi_comparisons(df, execute_time):
     for index, row in df.iterrows():
         ticker = row['code']
         print(Fore.LIGHTMAGENTA_EX + f"Generating RSI for: {ticker}" + Fore.RESET)
-        comparison_sector = row['RSI Comparison Sector']
-        comparison_market = row['RSI Comparison Market']
+        comparison_sector = row['rsi_comparison_sector']
+        comparison_market = row['rsi_comparison_market']
         # Load historical data for the ticker
         historical_data = yf.download(f"{ticker}", start=start_date, end=end_date, interval='1d')
 
-        comparison_sector_data = yf.download(f"{comparison_sector}.JO", start=start_date, end=end_date, interval='1d')
+        comparison_sector_data = yf.download(f"{comparison_sector}", start=start_date, end=end_date, interval='1d')
 
-        comparison_market_data = yf.download(f"{comparison_market}.JO", start=start_date, end=end_date, interval='1d')
+        comparison_market_data = yf.download(f"{comparison_market}", start=start_date, end=end_date, interval='1d')
 
         # Calculate RSI for the last 1 month, 3 months, and 6 months
         rsi = calculate_rsi_adjusted_close(historical_data, comparison_market_data, comparison_sector_data, ticker)
@@ -1255,6 +1256,7 @@ def daily_job():
         pass
     
     os.makedirs(os.path.join(reports_dir, f'{execute_time.replace(':', '')}'), exist_ok=True)
+    os.makedirs(os.path.join(reports_dir, f'{today}'), exist_ok=True)
     if SUMMARY_REPORT:
         detailed_pdf_filename = os.path.join(reports_dir, f'{today}', 'summary.pdf')
         create_detailed_pdf(stock_data, stock_images, detailed_pdf_filename, total_value_next_week, total_value_next_month, summary_report=True)
