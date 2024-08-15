@@ -80,13 +80,15 @@
                 <th>Stock Code</th>
                 <th>Name</th>
                 <th>Industry</th>
+                <th>Sub-Industry</th>
                 <th>Current Price (R)</th>
             </tr>
             {% for stock in stocks %}
             <tr>
-                <td><a href="https://finance.yahoo.com/quote/{{ stock['CODE'] }}/">{{ stock['CODE'] }}</a></td>
-                <td>{{ stock['SHARE NAME'] }}</td>
-                <td>{{ stock['INDUSTRY'] }}</td>
+                <td><a href="https://finance.yahoo.com/quote/{{ stock['code'] }}/">{{ stock['code'] }}</a></td>
+                <td>{{ stock['share_name'] }}</td>
+                <td>{{ stock['industry'] }}</td>
+                <td>{{ stock['sub_industry'] }}</td>
                 <td>{{ stock['Current Price'] }}</td>
             </tr>
             {% endfor %}
@@ -105,13 +107,13 @@
             </tr>
             {% for stock in stocks %}
             <tr>
-                <td><a href="https://finance.yahoo.com/quote/{{ stock['CODE'] }}/">{{ stock['CODE'] }}</a></td>
-                <td>{{ stock['SHARE NAME'] }}</td>
-                <td>{{ stock['INDUSTRY'] }}</td>
+                <td><a href="https://finance.yahoo.com/quote/{{ stock['code'] }}/">{{ stock['code'] }}</a></td>
+                <td>{{ stock['share_name'] }}</td>
+                <td>{{ stock['industry'] }}</td>
                 <td>{{ stock['Next Week Prediction']}}</td>
                 <td>{{ stock['Z-Score'] }}</td>
                 <td>{{ stock['Next Month Prediction'] }}</td>
-                <td class="{{ 'positive' if stock['Overbought_Oversold'] >= 0 else 'negative' }}">{{ stock['Overbought_Oversold'] }}</td>
+                <td class="{{ 'positive' if stock['Overbought_Oversold_Value'] >= 1 else 'negative' }}">{{ stock['Overbought_Oversold_Value'] }}</td>
             </tr>
             {% endfor %}
         </table>
@@ -130,9 +132,9 @@
             </tr>
             {% for stock in stocks %}
             <tr>
-                <td><a href="https://finance.yahoo.com/quote/{{ stock['CODE'] }}/">{{ stock['CODE'] }}</a></td>
-                <td>{{ stock['SHARE NAME'] }}</td>
-                <td>{{ stock['INDUSTRY'] }}</td>
+                <td><a href="https://finance.yahoo.com/quote/{{ stock['code'] }}/">{{ stock['code'] }}</a></td>
+                <td>{{ stock['share_name'] }}</td>
+                <td>{{ stock['industry'] }}</td>
                 <td class="{{ 'rsi-positive' if stock['SECTOR RSI 1M'] >= 1 else 'rsi-negative' }}">{{ stock['SECTOR RSI 1M'] }}</td>
                 <td class="{{ 'rsi-positive' if stock['SECTOR RSI 3M'] >= 1 else 'rsi-negative' }}">{{ stock['SECTOR RSI 3M'] }}</td>
                 <td class="{{ 'rsi-positive' if stock['SECTOR RSI 6M'] >= 1 else 'rsi-negative' }}">{{ stock['SECTOR RSI 6M'] }}</td>

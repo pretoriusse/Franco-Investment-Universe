@@ -69,8 +69,8 @@
             </tr>
             {% for stock in data.top %}
             <tr>
-                <td><a href="https://finance.yahoo.com/quote/{{ stock['CODE'] }}/">{{ stock['CODE'] }}</a></td>
-                <td>{{ stock['SHARE NAME'] }}</td>
+                <td><a href="https://finance.yahoo.com/quote/{{ stock['code'] }}/">{{ stock['code'] }}</a></td>
+                <td>{{ stock['share_name'] }}</td>
                 <td>{{ stock[metric] }}</td>
             </tr>
             {% endfor %}
@@ -85,8 +85,8 @@
             </tr>
             {% for stock in data.bottom %}
             <tr>
-                <td><a href="https://finance.yahoo.com/quote/{{ stock['CODE'] }}/">{{ stock['CODE'] }}</a></td>
-                <td>{{ stock['SHARE NAME'] }}</td>
+                <td><a href="https://finance.yahoo.com/quote/{{ stock['code'] }}/">{{ stock['code'] }}</a></td>
+                <td>{{ stock['share_name'] }}</td>
                 <td>{{ stock[metric] }}</td>
             </tr>
             {% endfor %}
