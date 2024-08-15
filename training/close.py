@@ -1,4 +1,3 @@
-
 import os
 import time
 import json
@@ -15,43 +14,65 @@ from tensorflow.keras.backend import clear_session # type: ignore
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+import re
+import tensorflow as tf
+import subprocess
+import schedule  # Import the schedule library
+
 try:
     from ..assets import database_queries as db_queries  # Importing database queries
 except ImportError:
     from assets import database_queries as db_queries
-import re
-import tensorflow as tf
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 tf.config.set_visible_devices([], 'GPU')
-import tensorflow as tf
 tf.get_logger().setLevel('ERROR')
 
+
+def pull_and_merge_trained_models(branch_name="main"):
+    try:
+        # Step 1: Stash any local changes
+        subprocess.run(["git", "stash"], check=True)
+        
+        # Step 2: Pull the latest changes from the remote branch
+        subprocess.run(["git", "pull", "origin", branch_name], check=True)
+        
+        # Step 3: Merge the trained models
+        model_dir = "models/"
+        subprocess.run(["git", "add", model_dir], check=True)
+        commit_message = "Merge trained models into branch"
+        subprocess.run(["git", "commit", "-m", commit_message], check=True)
+        
+        # Step 4: Push the changes back to the remote branch
+        subprocess.run(["git", "push", "origin", branch_name], check=True)
+        
+        # Step 5: Apply the stashed changes back
+        subprocess.run(["git", "stash", "pop"], check=True)
+
+        print("Successfully pulled, merged, and pushed trained models.")
+        
+    except subprocess.CalledProcessError as e:
+        print(f"Error during git operation: {e}")
 
 
 def make_dates_timezone_naive(data):
     try:
-        # Convert all datetime objects to timezone-naive
         data['date'] = pd.to_datetime(data['date']).dt.tz_localize(None)
         return data
     except KeyError:
-        # Convert all datetime objects to timezone-naive
         data['date'] = pd.to_datetime(data['Date']).dt.tz_localize(None)
         return data
 
 
 def sanitize_ticker(ticker):
-    # Replace or remove characters that are not alphanumeric or dot
     sanitized_ticker = re.sub(r'[^A-Za-z0-9.]', '', ticker)
     return sanitized_ticker
 
 
-# Training function (same as in the original code)
 def calculate_accuracy(y_true, y_pred, tolerance=0.05):
-    """Calculate the percentage of predictions within a tolerance of the actual values."""
     y_true = np.array(y_true)
     y_pred = np.array(y_pred)
     accuracy = np.mean(np.abs((y_true - y_pred) / y_true) <= tolerance)
@@ -120,7 +141,6 @@ def create_sequences(data, seq_length):
 def check_and_train_model(ticker, hparams, seq_length=60):
     logger.info(f"Checking if training is required for {ticker}")
 
-    # Fetch historical data from the database
     starttime_dt = datetime.now() - timedelta(days=4015)
     start_date = starttime_dt.strftime("%Y-%m-%d")
     end_date = datetime.now().strftime("%Y-%m-%d")
@@ -160,20 +180,26 @@ def check_and_train_model(ticker, hparams, seq_length=60):
 def run_training_loop(hparams):
     df: pd.DataFrame = db_queries.fetch_stock_and_commodity_universe_from_db()
 
-    while True:
-        for index, row in df.iterrows():
-            if "=" in row['code']:
-                continue
-            check_and_train_model(row['code'], hparams)
-            
-        logger.info("Completed a full training check cycle. Sleeping for 1 hour.")
-        time.sleep(86400)  # 1 hour sleep
+    for index, row in df.iterrows():
+        if "=" in row['code']:
+            continue
+        check_and_train_model(row['code'], hparams)
+        
+    logger.info("Completed a full training check cycle.")
+        
+    pull_and_merge_trained_models("main")
 
-
-if __name__ == "__main__":
+def job():
     hparams = {
         'HP_LSTM_UNITS': 400,
         'HP_DROPOUT': 0.3,
         'HP_EPOCHS': 200
     }
     run_training_loop(hparams)
+
+if __name__ == "__main__":
+    schedule.every().day.at("18:00").do(job)
+    
+    while True:
+        schedule.run_pending()
+        time.sleep(15)  # Wait for the next scheduled task

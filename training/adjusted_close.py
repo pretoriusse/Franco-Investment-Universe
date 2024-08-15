@@ -1,9 +1,7 @@
-
 import os
 import time
 import json
 import gc
-import threading
 import logging
 import numpy as np
 import pandas as pd
@@ -15,32 +13,27 @@ from tensorflow.keras.backend import clear_session # type: ignore
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+import re
+import schedule  # Import the schedule library
+
 try:
     from ..assets import database_queries as db_queries  # Importing database queries
 except ImportError:
     from assets import database_queries as db_queries
-import re
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-
 def make_dates_timezone_naive(data):
-    # Convert all datetime objects to timezone-naive
     data['date'] = pd.to_datetime(data['date']).dt.tz_localize(None)
     return data
 
-
 def sanitize_ticker(ticker):
-    # Replace or remove characters that are not alphanumeric or dot
     sanitized_ticker = re.sub(r'[^A-Za-z0-9.]', '', ticker)
     return sanitized_ticker
 
-
-# Training function (same as in the original code)
 def calculate_accuracy(y_true, y_pred, tolerance=0.05):
-    """Calculate the percentage of predictions within a tolerance of the actual values."""
     y_true = np.array(y_true)
     y_pred = np.array(y_pred)
     accuracy = np.mean(np.abs((y_true - y_pred) / y_true) <= tolerance)
@@ -109,7 +102,6 @@ def create_sequences(data, seq_length):
 def check_and_train_model(ticker, hparams, seq_length=60):
     logger.info(f"Checking if training is required for {ticker}")
 
-    # Fetch historical data from the database
     starttime_dt = datetime.now() - timedelta(days=4015)
     start_date = starttime_dt.strftime("%Y-%m-%d")
     end_date = datetime.now().strftime("%Y-%m-%d")
@@ -148,27 +140,32 @@ def check_and_train_model(ticker, hparams, seq_length=60):
 
 def run_training_loop(hparams):
     df: pd.DataFrame = db_queries.fetch_stock_universe_from_db()
-    
 
-    while True:
-        for index, row in df.iterrows():
-            if "=" in row['code'] or row['commodity']:
-                continue
-            sanitized_ticker = sanitize_ticker(row['code'])
-            model_dir = os.path.join('models', sanitized_ticker)
-            model_path = os.path.join(model_dir, f'{sanitized_ticker}_Adjusted_Close_Model.keras')
+    for index, row in df.iterrows():
+        if "=" in row['code'] or row['commodity']:
+            continue
+        sanitized_ticker = sanitize_ticker(row['code'])
+        model_dir = os.path.join('models', sanitized_ticker)
+        model_path = os.path.join(model_dir, f'{sanitized_ticker}_Adjusted_Close_Model.keras')
 
-            if os.path.exists(model_path):
-                continue
+        if os.path.exists(model_path):
+            continue
 
-            check_and_train_model(row['code'], hparams)
-        logger.info("Completed a full training check cycle. Sleeping for 1 hour.")
-        time.sleep(86400)
+        check_and_train_model(row['code'], hparams)
+        
+    logger.info("Completed a full training check cycle.")
 
-if __name__ == "__main__":
+def job():
     hparams = {
         'HP_LSTM_UNITS': 400,
         'HP_DROPOUT': 0.3,
         'HP_EPOCHS': 200
     }
     run_training_loop(hparams)
+
+if __name__ == "__main__":
+    schedule.every().day.at("18:00").do(job)
+    
+    while True:
+        schedule.run_pending()
+        time.sleep(15)  # Wait for the next scheduled task
