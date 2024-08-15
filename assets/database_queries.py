@@ -18,32 +18,9 @@ engine = create_engine(
     f"postgresql://{DB_PARAMS['user']}:{DB_PARAMS['password']}@{DB_PARAMS['host']}:{DB_PARAMS['port']}/{DB_PARAMS['dbname']}"
 )
 Session = sessionmaker(bind=engine)
-session = Session()
-
-# Fetch commodity data
-def get_commodities_from_db(ticker: str):
-    query = """
-        SELECT date,
-            ticker AS code,
-            commodity_zar_open AS open,
-            commodity_zar_high AS high,
-            commodity_zar_low AS low,
-            commodity_zar_close AS close,
-            commodity_zar_adj_close AS "Adj Close",
-            Volume
-        FROM show_commodities
-        WHERE ticker ILIKE :ticker
-        ORDER BY date DESC;
-    """
-    try:
-        df = pd.read_sql_query(text(query), engine, params={"ticker": f'%{ticker.replace("%", "")}%'})
-        logger.info(f"Commodity data successfully fetched for {ticker}.")
-        return df
-    except Exception as e:
-        logger.error(f"Error fetching commodity data for {ticker}: {e}")
-        return pd.DataFrame()
 
 def fetch_stock_universe_from_db():
+    session = Session()
     try:
         stocks = session.query(
             Stock.code,
@@ -63,10 +40,13 @@ def fetch_stock_universe_from_db():
         return stock_universe
 
     except Exception as e:
-        print(f"Error fetching stock universe from DB: {e}")
+        logger.error(f"Error fetching stock universe from DB: {e}")
         return pd.DataFrame()
+    finally:
+        session.close()
 
 def fetch_stock_and_commodity_universe_from_db():
+    session = Session()
     try:
         stocks = session.query(
             Stock.code,
@@ -85,10 +65,13 @@ def fetch_stock_and_commodity_universe_from_db():
         return stock_universe
 
     except Exception as e:
-        print(f"Error fetching stock universe from DB: {e}")
+        logger.error(f"Error fetching stock universe from DB: {e}")
         return pd.DataFrame()
+    finally:
+        session.close()
 
 def fetch_commodity_universe_from_db():
+    session = Session()
     try:
         commodities = session.query(
             Stock.code,
@@ -107,10 +90,13 @@ def fetch_commodity_universe_from_db():
         return stock_universe
 
     except Exception as e:
-        print(f"Error fetching stock universe from DB: {e}")
+        logger.error(f"Error fetching stock universe from DB: {e}")
         return pd.DataFrame()
+    finally:
+        session.close()
 
 def get_ticker_from_db(ticker: str):
+    session = Session()
     try:
         ticker_data = session.query(
             StockDataHistory.date,
@@ -126,16 +112,19 @@ def get_ticker_from_db(ticker: str):
 
         df = pd.DataFrame(ticker_data)
         if df.empty:
-            print(f"No data found for {ticker} after fetching from DB.")
+            logger.info(f"No data found for {ticker} after fetching from DB.")
             return pd.DataFrame()
 
         return df
 
     except Exception as e:
-        print(f"Error fetching ticker data from DB for {ticker}: {e}")
+        logger.error(f"Error fetching ticker data from DB for {ticker}: {e}")
         return pd.DataFrame()
+    finally:
+        session.close()
 
 def get_ticker_from_db_with_date_select(ticker: str, start_date: str, end_date: str):
+    session = Session()
     try:
         ticker_data = session.query(
             StockDataHistory.date,
@@ -152,16 +141,19 @@ def get_ticker_from_db_with_date_select(ticker: str, start_date: str, end_date: 
 
         df = pd.DataFrame(ticker_data)
         if df.empty:
-            print(f"No data found for {ticker} after fetching from DB.")
+            logger.info(f"No data found for {ticker} after fetching from DB.")
             return pd.DataFrame()
 
         return df
 
     except Exception as e:
-        print(f"Error fetching ticker data from DB for {ticker}: {e}")
+        logger.error(f"Error fetching ticker data from DB for {ticker}: {e}")
         return pd.DataFrame()
+    finally:
+        session.close()
 
 def get_commodities_from_db(ticker: str):
+    session = Session()
     try:
         commodity_data = session.query(
             ShowCommodities.date,
@@ -177,32 +169,41 @@ def get_commodities_from_db(ticker: str):
 
         df = pd.DataFrame(commodity_data)
         if df.empty:
-            print(f"No data found for {ticker} after fetching from DB.")
+            logger.info(f"No data found for {ticker} after fetching from DB.")
             return pd.DataFrame()
 
         return df
 
     except Exception as e:
-        print(f"Error fetching commodities data from DB for {ticker}: {e}")
+        logger.error(f"Error fetching commodities data from DB for {ticker}: {e}")
         return pd.DataFrame()
+    finally:
+        session.close()
 
 def fetch_latest_date_for_ticker(ticker: str):
+    session = Session()
     try:
         result = session.query(func.max(StockDataHistory.date)).filter(StockDataHistory.ticker == ticker).scalar()
         return result if result else None
     except Exception as e:
-        print(f"Error fetching latest date for {ticker}: {e}")
+        logger.error(f"Error fetching latest date for {ticker}: {e}")
         return None
+    finally:
+        session.close()
 
 def insert_stock_data_history_batch(batch):
+    session = Session()
     try:
         session.bulk_insert_mappings(StockDataHistory, batch)
         session.commit()
     except Exception as e:
-        print(f"Error inserting stock data history: {e}")
+        logger.error(f"Error inserting stock data history: {e}")
         session.rollback()
+    finally:
+        session.close()
 
 def update_zar_periods():
+    session = Session()
     try:
         # Fetch all overbought/oversold values
         zar_data = session.query(ZARUSD.date, ZARUSD.overbought_oversold)\
@@ -217,7 +218,7 @@ def update_zar_periods():
                 if overbought_oversold > 0:
                     if current_type != 'bad':
                         if current_period:
-                            insert_period(current_period)
+                            insert_period(session, current_period)
                         current_period = [date, date, 'bad']
                         current_type = 'bad'
                     else:
@@ -225,7 +226,7 @@ def update_zar_periods():
                 elif overbought_oversold < 0:
                     if current_type != 'good':
                         if current_period:
-                            insert_period(current_period)
+                            insert_period(session, current_period)
                         current_period = [date, date, 'good']
                         current_type = 'good'
                     else:
@@ -236,27 +237,30 @@ def update_zar_periods():
                     elif current_type == 'good':
                         current_period[1] = date
             except Exception as e:
-                print(f"Error processing overbought_oversold for date {date}: {e}")
+                logger.error(f"Error processing overbought_oversold for date {date}: {e}")
 
         if current_period:
-            insert_period(current_period)
+            insert_period(session, current_period)
 
         session.commit()
 
     except Exception as e:
-        print(f"Error updating ZAR periods: {e}")
+        logger.error(f"Error updating ZAR periods: {e}")
         session.rollback()
+    finally:
+        session.close()
 
-def insert_period(period):
+def insert_period(session, period):
     start_date, end_date, period_type = period
     if period_type == 'good':
         period_entry = ZARGood(start_date=start_date, end_date=end_date)
     else:
-        period_entry = ZARBad(start_date=start_date, end_date=end_date)
+        period_entry = ZARBad(start_date=start_date,         end_date=end_date)
     session.merge(period_entry)
     session.commit()
 
 def fetch_latest_dividend_date(ticker: str):
+    session = Session()
     try:
         latest_date = session.query(Dividend.date).filter(Dividend.ticker == ticker).order_by(Dividend.date.desc()).first()
         if latest_date:
@@ -265,8 +269,11 @@ def fetch_latest_dividend_date(ticker: str):
     except Exception as e:
         logger.error(f"Error fetching latest dividend date for {ticker}: {e}")
         return None
+    finally:
+        session.close()
 
 def insert_dividends_batch(batch):
+    session = Session()
     try:
         stmt = insert(Dividend).values(batch)
         stmt = stmt.on_conflict_do_update(
@@ -278,48 +285,55 @@ def insert_dividends_batch(batch):
     except Exception as e:
         logger.error(f"Error inserting dividends batch: {e}")
         session.rollback()
+    finally:
+        session.close()
 
 def fetch_latest_commodity_date(ticker):
-    """Fetch the latest date available in the zar_usd table."""
+    session = Session()
     try:
         result = session.query(func.max(Commodity.date)).scalar()
         return result if result else None
     except Exception as e:
         logger.error(f"Error fetching latest date: {e}")
         return None
+    finally:
+        session.close()
 
 def insert_commodities_batch(data_list):
     session = Session()
     try:
-        # Your insert logic here
-        session.bulk_insert_mappings(..., data_list)
+        session.bulk_insert_mappings(Commodity, data_list)
         session.commit()
     except Exception as e:
         session.rollback()
-        raise
+        logger.error(f"Error inserting commodities batch: {e}")
     finally:
         session.close()
 
 def fetch_latest_date_for_zar(ticker: str):
-    """Fetch the latest date available in the zar_usd table."""
+    session = Session()
     try:
         result = session.query(func.max(ZARUSD.date)).scalar()
         return result if result else None
     except Exception as e:
         logger.error(f"Error fetching latest date: {e}")
         return None
+    finally:
+        session.close()
 
 def insert_zar_usd_batch(batch):
-    """Insert a batch of ZAR/USD data into the zar_usd table."""
+    session = Session()
     try:
         session.bulk_insert_mappings(ZARUSD, batch)
         session.commit()
     except Exception as e:
         logger.error(f"Error inserting ZAR/USD data: {e}")
         session.rollback()
+    finally:
+        session.close()
 
 def fetch_all_zar_usd():
-    """Fetch all ZAR/USD data to calculate periods."""
+    session = Session()
     try:
         return session.query(ZARUSD.date, ZARUSD.overbought_oversold)\
                       .filter(ZARUSD.overbought_oversold.isnot(None))\
@@ -329,9 +343,9 @@ def fetch_all_zar_usd():
         return []
 
 def insert_zar_good_period(period):
-    """Insert a period into the zar_good table."""
-    start_date, end_date, _ = period  # Ignore the third value (period type)
+    session = Session()
     try:
+        start_date, end_date, _ = period
         stmt = insert(ZARGood).values(start_date=start_date, end_date=end_date)
         stmt = stmt.on_conflict_do_update(
             index_elements=['start_date'],
@@ -342,11 +356,13 @@ def insert_zar_good_period(period):
     except Exception as e:
         logger.error(f"Error inserting ZAR good period: {e}")
         session.rollback()
+    finally:
+        session.close()
 
 def insert_zar_bad_period(period):
-    """Insert a period into the zar_bad table."""
-    start_date, end_date, _ = period  # Ignore the third value (period type)
+    session = Session()
     try:
+        start_date, end_date, _ = period
         stmt = insert(ZARBad).values(start_date=start_date, end_date=end_date)
         stmt = stmt.on_conflict_do_update(
             index_elements=['start_date'],
@@ -357,8 +373,11 @@ def insert_zar_bad_period(period):
     except Exception as e:
         logger.error(f"Error inserting ZAR bad period: {e}")
         session.rollback()
+    finally:
+        session.close()
 
 def insert_prediction(date, code, adj_close=None, close=None):
+    session = Session()
     try:
         # Convert numpy.float32 to Python float
         adj_close = float(adj_close) if isinstance(adj_close, np.float32) else adj_close
@@ -374,14 +393,15 @@ def insert_prediction(date, code, adj_close=None, close=None):
         RETURNING predictions.id;
         """)
         
-        # Assuming you have a session and engine set up
         session.execute(query, {'date': date, 'code': code, 'adj_close': adj_close, 'close': close})
         session.commit()
     except SQLAlchemyError as e:
-        session.rollback()
         logger.error(f"Error inserting prediction: {e}")
+        session.rollback()
     finally:
         session.close()
 
 def close_session():
+    session = Session()
     session.close()
+

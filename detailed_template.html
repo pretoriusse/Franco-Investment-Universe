@@ -113,7 +113,7 @@
                 <td>{{ stock['Next Week Prediction']}}</td>
                 <td>{{ stock['Z-Score'] }}</td>
                 <td>{{ stock['Next Month Prediction'] }}</td>
-                <td class="{{ 'positive' if stock['Overbought_Oversold_Value'] >= 1 else 'negative' }}">{{ stock['Overbought_Oversold_Value'] }}</td>
+                <td class="{{ 'positive' if stock['Overbought_Oversold'] >= 0 else 'negative' }}">{{ stock['Overbought_Oversold_Value'] }}</td>
             </tr>
             {% endfor %}
         </table>

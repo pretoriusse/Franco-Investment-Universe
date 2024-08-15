@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Stock Report Summary</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        .content-wrapper {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .header img {
+            max-width: 100%;
+            height: auto;
+            max-height: 200px; /* Ensures the logo doesn't get too large */
+        }
+        h2 {
+            color: #333333;
+            border-bottom: 2px solid #dddddd;
+            padding-bottom: 5px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #dddddd;
+            text-align: left;
+            padding: 12px;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        .positive {
+            color: green;
+        }
+        .negative {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <div class="content-wrapper">
+        <div class="header">
+            <img src="https://cdn1.pretoriusse.net/CDN/Logo/Logo/cover.png" alt="Pretoriusse Logo">
+        </div>
+        
+        
+        <h2>Z_Score</h2>
+        <h3>Top 10</h3>
+        <table>
+            <tr>
+                <th>Ticker</th>
+                <th>Name</th>
+                <th>Z_Score</th>
+            </tr>
+            
+        </table>
+        
+        <h3>Bottom 10</h3>
+        <table>
+            <tr>
+                <th>Ticker</th>
+                <th>Name</th>
+                <th>Z_Score</th>
+            </tr>
+            
+        </table>
+        
+        <h2>Next_Week_Prediction_Change</h2>
+        <h3>Top 10</h3>
+        <table>
+            <tr>
+                <th>Ticker</th>
+                <th>Name</th>
+                <th>Next_Week_Prediction_Change</th>
+            </tr>
+            
+        </table>
+        
+        <h3>Bottom 10</h3>
+        <table>
+            <tr>
+                <th>Ticker</th>
+                <th>Name</th>
+                <th>Next_Week_Prediction_Change</th>
+            </tr>
+            
+        </table>
+        
+        <h2>Next_Month_Prediction_Change</h2>
+        <h3>Top 10</h3>
+        <table>
+            <tr>
+                <th>Ticker</th>
+                <th>Name</th>
+                <th>Next_Month_Prediction_Change</th>
+            </tr>
+            
+        </table>
+        
+        <h3>Bottom 10</h3>
+        <table>
+            <tr>
+                <th>Ticker</th>
+                <th>Name</th>
+                <th>Next_Month_Prediction_Change</th>
+            </tr>
+            
+        </table>
+        
+    </div>
+</body>
+</html>
