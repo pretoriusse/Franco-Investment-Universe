@@ -57,37 +57,37 @@
         <div class="header">
             <img src="https://cdn1.pretoriusse.net/CDN/Logo/Logo/cover.png" alt="Pretoriusse Logo">
         </div>
-        
+
         {% for metric, data in top_bottom_data.items() %}
-        <h2>{{ metric }}</h2>
+        <h2>{{ metric.replace('_', ' ') }}</h2>
         <h3>Top 10</h3>
         <table>
             <tr>
                 <th>Ticker</th>
                 <th>Name</th>
-                <th>{{ metric }}</th>
+                <th>{{ metric.replace('_', ' ') }}</th>
             </tr>
-            {% for stock in data.top %}
+            {% for stock in data.top_10.itertuples() %}
             <tr>
-                <td><a href="https://finance.yahoo.com/quote/{{ stock['code'] }}/">{{ stock['code'] }}</a></td>
-                <td>{{ stock['share_name'] }}</td>
-                <td>{{ stock[metric] }}</td>
+                <td><a href="https://finance.yahoo.com/quote/{{ stock.code }}/">{{ stock.code }}</a></td>
+                <td>{{ stock.share_name }}</td>
+                <td>{{ getattr(stock, metric) }}</td>
             </tr>
             {% endfor %}
         </table>
-        
+
         <h3>Bottom 10</h3>
         <table>
             <tr>
                 <th>Ticker</th>
                 <th>Name</th>
-                <th>{{ metric }}</th>
+                <th>{{ metric.replace('_', ' ') }}</th>
             </tr>
-            {% for stock in data.bottom %}
+            {% for stock in data.bottom_10.itertuples() %}
             <tr>
-                <td><a href="https://finance.yahoo.com/quote/{{ stock['code'] }}/">{{ stock['code'] }}</a></td>
-                <td>{{ stock['share_name'] }}</td>
-                <td>{{ stock[metric] }}</td>
+                <td><a href="https://finance.yahoo.com/quote/{{ stock.code }}/">{{ stock.code }}</a></td>
+                <td>{{ stock.share_name }}</td>
+                <td>{{ getattr(stock, metric) }}</td>
             </tr>
             {% endfor %}
         </table>

@@ -938,8 +938,8 @@ def create_detailed_pdf(data, stock_images, filename, total_value_next_week, tot
         data['Current Price'] = data['Current Price'].replace(0, pd.NA).fillna(1e-6)
         data['Next_Week_Prediction_Change'] = ((data['Next Week Prediction'] - data['Current Price']) / data['Current Price']) * 100
         data['Next_Month_Prediction_Change'] = ((data['Next Month Prediction'] - data['Current Price']) / data['Current Price']) * 100
-        data['Next_Week_Prediction_Change'] = data['Next_Week_Prediction_Change'].clip(-500, 500)
-        data['Next_Month_Prediction_Change'] = data['Next_Month_Prediction_Change'].clip(-500, 500)
+        #data['Next_Week_Prediction_Change'] = data['Next_Week_Prediction_Change'].clip(-500, 500)
+        #data['Next_Month_Prediction_Change'] = data['Next_Month_Prediction_Change'].clip(-500, 500)
 
         metrics = ['Z_Score', 'Next_Week_Prediction_Change', 'Next_Month_Prediction_Change']
         top_bottom_data = {metric: {
@@ -947,12 +947,12 @@ def create_detailed_pdf(data, stock_images, filename, total_value_next_week, tot
             'bottom_10': data.nsmallest(10, metric)
         } for metric in metrics}
 
-        # Debug print to check if the data is populated
+        # Print out data being passed to the template
         for metric, entries in top_bottom_data.items():
             print(f"Top 10 for {metric}:")
-            print(entries['top_10'])
+            print(entries['top_10'].to_string(index=False))
             print(f"Bottom 10 for {metric}:")
-            print(entries['bottom_10'])
+            print(entries['bottom_10'].to_string(index=False))
 
         template = env.get_template('summary_template.html')
         rendered = template.render(
