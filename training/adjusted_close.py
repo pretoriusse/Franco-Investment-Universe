@@ -192,6 +192,7 @@ def job():
     run_training_loop(hparams)
 
 if __name__ == "__main__":
+    job()
     schedule.every().day.at("18:00").do(job)
     
     while True:
