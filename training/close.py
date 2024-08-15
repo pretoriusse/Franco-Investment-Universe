@@ -20,11 +20,16 @@ try:
 except ImportError:
     from assets import database_queries as db_queries
 import re
+import tensorflow as tf
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
+tf.config.set_visible_devices([], 'GPU')
+import tensorflow as tf
+tf.get_logger().setLevel('ERROR')
+
 
 
 def make_dates_timezone_naive(data):
@@ -132,7 +137,7 @@ def check_and_train_model(ticker, hparams, seq_length=60):
 
     sanitized_ticker = sanitize_ticker(ticker)
     model_dir = os.path.join('models', sanitized_ticker)
-    model_path = os.path.join(model_dir, f'{sanitized_ticker}_Adjusted_Close_Model.keras')
+    model_path = os.path.join(model_dir, f'{sanitized_ticker}_Close_Model.keras')
 
     last_date_in_data = hist['date'].max()
 
