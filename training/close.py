@@ -151,10 +151,17 @@ def run_training_loop(hparams):
     
 
     while True:
+        threads = []
         for index, row in df.iterrows():
             if "=" in row['code']:
                 continue
-            check_and_train_model(row['code'], hparams)
+            thread = threading.Thread(target=check_and_train_model, args=(row['code'], hparams))
+            thread.start()
+            threads.append(thread)
+        
+        for thread in threads:
+            thread.join()
+            
         logger.info("Completed a full training check cycle. Sleeping for 1 hour.")
         time.sleep(1722800)
 
