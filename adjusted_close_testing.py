@@ -925,6 +925,10 @@ def fetch_data(hparams: dict):
 
 def create_detailed_pdf(data, stock_images, filename, total_value_next_week, total_value_next_month, summary_report=False):
     print(Fore.LIGHTGREEN_EX + f"Creating PDF report: {filename}" + Fore.RESET)
+
+    # Initialize the Jinja2 Environment
+    env = Environment(loader=FileSystemLoader('.'))  # Ensure 'env' is initialized
+    
     options = {
         'page-size': 'Letter',
         'encoding': "UTF-8"
@@ -989,7 +993,7 @@ def create_detailed_pdf(data, stock_images, filename, total_value_next_week, tot
         for metric, data in top_bottom_data.items():
             for category in ['top_10', 'bottom_10']:
                 for i, row in data[category].iterrows():
-                    code = row['CODE']
+                    code = row['code']
                     close_prediction_img_path = os.path.join(plot_base_path, code.replace('.JO', ''), 'adj_close_prediction_compressed.jpg')
                     adj_bollinger_img_path = os.path.join(plot_base_path, code.replace('.JO', ''), 'adj_bollinger_compressed.jpg')
                     adj_overbought_img_path = os.path.join(plot_base_path, code.replace('.JO', ''), 'adj_overbought_oversold_compressed.jpg')
