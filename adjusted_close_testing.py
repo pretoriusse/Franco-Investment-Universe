@@ -64,7 +64,7 @@ METRIC_ACCURACY = 'accuracy'
 
 # ENABLE DEBUGGING and or Predictions
 DEBUGGING = False
-PREDICTION = True
+PREDICTION = False
 SUMMARY_REPORT = True
 
 DIRECTORIES = ['data', 'logs', 'plots', 'reports', 'models', 'runs', 'data/runs']

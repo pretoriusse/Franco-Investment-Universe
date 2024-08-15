@@ -64,7 +64,7 @@ METRIC_ACCURACY = 'accuracy'
 
 # ENABLE DEBUGGING and or Predictions
 DEBUGGING = False
-PREDICTION = True
+PREDICTION = False
 SUMMARY_REPORT = True
 
 DIRECTORIES = ['data', 'logs', 'plots', 'reports', 'models', 'runs', 'data/runs']
@@ -812,7 +812,7 @@ def predict_close_value(hist, hparams, ticker):
 # Function to fetch data and run predictions for each ticker
 def fetch_data(hparams):
     logger.info("Starting data fetch process")
-    stocks_df = db_queries.fetch_stock_and_commodity_universe_from_db()
+    stocks_df = db_queries.fetch_stock_universe_from_db()
     stock_images = []
     total_value_next_week = 0
     total_value_next_month = 0

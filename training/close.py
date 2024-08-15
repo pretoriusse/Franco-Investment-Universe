@@ -27,8 +27,6 @@ except ImportError:
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
-os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
-tf.config.set_visible_devices([], 'GPU')
 tf.get_logger().setLevel('ERROR')
 
 
