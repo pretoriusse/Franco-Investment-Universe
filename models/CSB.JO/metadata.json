@@ -1,1 +1,1 @@
-{"last_trained_date": "2024-08-15 08:45:02.798557", "mean_squared_error": 0.00017793147979550607, "mean_absolute_error": 0.009406337140981118, "r2_score": 0.9959154704548422, "predictions_within_5_percent": 6.13800203298486}
+{"last_trained_date": "2024-08-16 05:28:47.209973", "mean_squared_error": 0.0001791779215592495, "mean_absolute_error": 0.009865479922784817, "r2_score": 0.9961758484693987, "predictions_within_5_percent": 5.033795176775385}
