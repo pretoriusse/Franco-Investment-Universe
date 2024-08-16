@@ -99,10 +99,9 @@
                 <th>Ticker</th>
                 <th>Name</th>
                 <th>Industry</th>
-                <th>Shares</th>
                 <th>Next Week Prediction (%)</th>
-                <th>Z-Score</th>
                 <th>Next Month Prediction (%)</th>
+                <th>Z-Score</th>
                 <th>Overbought/Oversold</th>
             </tr>
             {% for stock in stocks %}
@@ -110,9 +109,9 @@
                 <td><a href="https://finance.yahoo.com/quote/{{ stock['code'] }}/">{{ stock['code'] }}</a></td>
                 <td>{{ stock['share_name'] }}</td>
                 <td>{{ stock['industry'] }}</td>
-                <td>{{ stock['Next Week Prediction']}}</td>
+                <td class="{{ 'positive' if stock['Next Week Prediction'] >= 0 else 'negative' }}">{{ stock['Next Week Prediction']}}</td>
+                <td class="{{ 'positive' if stock['Next Month Prediction'] >= 0 else 'negative' }}">{{ stock['Next Month Prediction'] }}</td>
                 <td>{{ stock['Z-Score'] }}</td>
-                <td>{{ stock['Next Month Prediction'] }}</td>
                 <td class="{{ 'positive' if stock['Overbought_Oversold'] >= 0 else 'negative' }}">{{ stock['Overbought_Oversold_Value'] }}</td>
             </tr>
             {% endfor %}

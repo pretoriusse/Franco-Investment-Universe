@@ -1109,7 +1109,7 @@ def add_adjusted_close_rsi_comparisons(df):
 
 
 # Reporting
-def upload_to_spaces(file_path, spaces_access_key, spaces_secret_key, bucket_name, region_name, endpoint_url):
+def upload_to_spaces(file_path, spaces_access_key, spaces_secret_key, bucket_name, region_name, endpoint_url, today):
     session = boto3.session.Session()
     client = session.client('s3',
                             region_name=region_name,
@@ -1117,10 +1117,13 @@ def upload_to_spaces(file_path, spaces_access_key, spaces_secret_key, bucket_nam
                             aws_access_key_id=spaces_access_key,
                             aws_secret_access_key=spaces_secret_key)
 
+    # Create the directory structure
     file_name = os.path.basename(file_path)
-    client.upload_file(file_path, bucket_name, file_name, ExtraArgs={'ACL': 'public-read'})
+    remote_path = f"reports/{today}/{file_name}"
     
-    return f"{endpoint_url}/{bucket_name}/{file_name}"
+    client.upload_file(file_path, bucket_name, remote_path, ExtraArgs={'ACL': 'public-read'})
+    
+    return f"{endpoint_url}/{bucket_name}/{remote_path}"
 
 
 def prepare_stock_images(top_bottom_data):
@@ -1337,13 +1340,13 @@ def daily_job():
     attachment_urls = []
 
     if SUMMARY_REPORT:
-        summary_pdf_filename = os.path.join(reports_dir, f'{today}', 'summary.pdf')
+        summary_pdf_filename = os.path.join(reports_dir, f'{today}', 'adjusted_close_summary.pdf')
         create_detailed_pdf(stock_data, stock_images, summary_pdf_filename, total_value_next_week, total_value_next_month, summary_report=True)
         compressed_summary_path = compress_pdf(summary_pdf_filename)
         summary_url = upload_to_spaces(compressed_summary_path, SPACES_KEY, SPACES_SECRET, SPACES_BUCKET, SPACES_REGION, SPACES_URL)
         attachment_urls.append(summary_url)
     
-    detailed_pdf_filename = os.path.join(reports_dir, f'{today}', 'detailed.pdf')
+    detailed_pdf_filename = os.path.join(reports_dir, f'{today}', 'adjusted_close_detailed.pdf')
     create_detailed_pdf(stock_data, stock_images, detailed_pdf_filename, total_value_next_week, total_value_next_month, summary_report=False)
     compressed_detailed_path = compress_pdf(detailed_pdf_filename)
     detailed_url = upload_to_spaces(compressed_detailed_path, SPACES_KEY, SPACES_SECRET, SPACES_BUCKET, SPACES_REGION, SPACES_URL)
