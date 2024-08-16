@@ -29,5 +29,5 @@ def setup_scheduler():
 
 
 if __name__ == '__main__':
-    main()
+    #main()
     setup_scheduler()

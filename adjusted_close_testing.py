@@ -36,8 +36,9 @@ import re
 import hashlib
 import json
 from assets import upload_history, zar_process, dividends, fetch_daily_commodity_data
-from assets.const import DB_PARAMS, EMAIL_ADDRESS, SERVER_ADDRESS, SERVER_PORT, EMAIL_PASSWORD
+from assets.const import EMAIL_ADDRESS, SERVER_ADDRESS, SERVER_PORT, EMAIL_PASSWORD
 from assets import database_queries as db_queries  # Importing database queries
+from PyPDF2 import PdfReader, PdfWriter
 
 # Colorama init
 colorama_init()
@@ -143,6 +144,14 @@ def process_image(img_path):
 def encode_image(image_path):
     with open(image_path, 'rb') as image_file:
         return base64.b64encode(image_file.read()).decode('utf-8')
+
+
+def encode_image_to_base64(image_path):
+    try:
+        with open(image_path, "rb") as image_file:
+            return base64.b64encode(image_file.read()).decode('utf-8')
+    except FileNotFoundError:
+        return None
 
 
 def calculate_moving_averages(data, short_window=24, long_window=55):
@@ -923,8 +932,48 @@ def fetch_data(hparams: dict):
     return stocks_df, stock_images, total_value_next_week, total_value_next_month
 
 
+def prepare_stock_images(top_bottom_data):
+    stock_images = []
+    added_tickers = set()
+
+    for metric in top_bottom_data:
+        for group in ['top_10', 'bottom_10']:
+            for entry in top_bottom_data[metric][group]:
+                ticker = entry['code']
+                if ticker not in added_tickers:
+                    stock_img = {
+                        'name': entry['share_name'],
+                        'ticker': ticker,
+                        'prediction': encode_image_to_base64(f'plots/{ticker.replace(".JO", "")}/adj_close_prediction_compressed.jpg'),
+                        'bollinger': encode_image_to_base64(f'plots/{ticker.replace(".JO", "")}/adj_bollinger_compressed.jpg'),
+                        'overbought_oversold': encode_image_to_base64(f'plots/{ticker.replace(".JO", "")}/adj_overbought_oversold_compressed.jpg')
+                    }
+                    stock_images.append(stock_img)
+                    added_tickers.add(ticker)
+
+    return stock_images
+
+
+def compress_pdf(filename):
+    print(f"Compressing PDF report: {filename}")
+    reader = PdfReader(filename)
+    writer = PdfWriter()
+
+    for page in reader.pages:
+        page.compress_content_streams()  # This is where the compression happens
+        writer.add_page(page)
+
+    compressed_filename = filename.replace('.pdf', '_compressed.pdf')
+    with open(compressed_filename, 'wb') as f:
+        writer.write(f)
+
+    print(f"Compressed PDF report created at: {compressed_filename}")
+
+    return compressed_filename
+
+
 def create_detailed_pdf(data, stock_images, filename, total_value_next_week, total_value_next_month, summary_report=False):
-    print(Fore.LIGHTGREEN_EX + f"Creating PDF report: {filename}" + Fore.RESET)
+    print(f"Creating PDF report: {filename}")
     options = {
         'page-size': 'Letter',
         'encoding': "UTF-8"
@@ -938,26 +987,24 @@ def create_detailed_pdf(data, stock_images, filename, total_value_next_week, tot
         data['Current Price'] = data['Current Price'].replace(0, pd.NA).fillna(1e-6)
         data['Next_Week_Prediction_Change'] = ((data['Next Week Prediction'] - data['Current Price']) / data['Current Price']) * 100
         data['Next_Month_Prediction_Change'] = ((data['Next Month Prediction'] - data['Current Price']) / data['Current Price']) * 100
-        #data['Next_Week_Prediction_Change'] = data['Next_Week_Prediction_Change'].clip(-500, 500)
-        #data['Next_Month_Prediction_Change'] = data['Next_Month_Prediction_Change'].clip(-500, 500)
 
-        metrics = ['Z_Score', 'Next_Week_Prediction_Change', 'Next_Month_Prediction_Change']
-        top_bottom_data = {metric: {
-            'top_10': data.nlargest(10, metric),
-            'bottom_10': data.nsmallest(10, metric)
-        } for metric in metrics}
+        metrics = ['Z_Score', 'Next_Week_Prediction_Change', 'Next_Month_Prediction_Change', 'Overbought_Oversold_Value', 'SECTOR RSI 1M', 'SECTOR RSI 3M', 'SECTOR RSI 6M', 'MARKET RSI 1M', 'MARKET RSI 3M', 'MARKET RSI 6M']
+        top_bottom_data = {
+            metric: {
+                'top_10': data.nlargest(10, metric).to_dict(orient='records'),
+                'bottom_10': data.nsmallest(10, metric).to_dict(orient='records')
+            }
+            for metric in metrics
+        }
 
-        # Print out data being passed to the template
-        for metric, entries in top_bottom_data.items():
-            print(f"Top 10 for {metric}:")
-            print(entries['top_10'].to_string(index=False))
-            print(f"Bottom 10 for {metric}:")
-            print(entries['bottom_10'].to_string(index=False))
+        # Prepare stock images based on top/bottom data
+        stock_images = prepare_stock_images(top_bottom_data)
 
         template = env.get_template('summary_template.html')
         rendered = template.render(
             top_bottom_data=top_bottom_data,
-            summary=create_summary(data, total_value_next_week, total_value_next_month)
+            summary=create_summary(data, total_value_next_week, total_value_next_month),
+            stock_images=stock_images
         )
 
     else:
@@ -1232,12 +1279,12 @@ def daily_job():
     for direc in DIRECTORIES:
         os.makedirs(direc, exist_ok=True)
 
-    #generate_bollinger_and_overbought_oversold_adjusted_close()
+    generate_bollinger_and_overbought_oversold_adjusted_close()
 
     hparams = {
         'HP_LSTM_UNITS': 400,
         'HP_DROPOUT': 0.3,
-        'HP_EPOCHS': 2 if DEBUGGING else 200
+        'HP_EPOCHS': 20 if DEBUGGING else 200
     }
     
     stock_data, stock_images, total_value_next_week, total_value_next_month = fetch_data(hparams)
@@ -1278,17 +1325,13 @@ def daily_job():
     create_detailed_pdf(stock_data, stock_images, detailed_pdf_filename, total_value_next_week, total_value_next_month, summary_report=False)
     
     print(Fore.GREEN + "PDF created" + Fore.RESET)
-
-    try:
-        send_email(f'Daily Stock Report Summary {today}', html_content, [summary_pdf_filename])
-    except Exception:
-        print(Fore.RED + "Email not sent" + Fore.RESET)
-        pass
-
     
+    compressed_path = compress_pdf(summary_pdf_filename)
+
     try:
-        send_email(f'Daily Stock Report {today}', html_content, [detailed_pdf_filename])
-    except Exception:
+        send_email(f'Daily Stock Report {today}', html_content, [compressed_path])
+    except Exception as ex:
+        logger.error("Email not sent:\n%s", ex)
         print(Fore.RED + "Email not sent" + Fore.RESET)
         pass
 
@@ -1296,7 +1339,7 @@ def daily_job():
 
 
 def setup_scheduler():
-    schedule.every().day.at("00:10").do(daily_job)
+    schedule.every().day.at("06:30").do(daily_job)
     while True:
         schedule.run_pending()
         time.sleep(15)
@@ -1305,4 +1348,4 @@ def setup_scheduler():
 if __name__ == '__main__':
     daily_job()
     setup_scheduler()
-    
+  
