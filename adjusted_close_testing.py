@@ -1253,7 +1253,7 @@ def send_email(subject, template_path, top_bottom_data, summary_report_url, deta
     reciepients = [formataddr(("Raine Pretorius", 'raine.pretorius1@gmail.com'))]
     message = MIMEMultipart()
     message['From'] = formataddr(("Stock Bot", EMAIL_ADDRESS))
-    message['To'] = ','.join([formataddr(("Raine Pretorius", 'raine.pretorius1@gmail.com'))])
+    message['To'] = ','.join(reciepients)
     message['Bcc'] = ','.join(reciepients)
     message['Subject'] = subject
 
