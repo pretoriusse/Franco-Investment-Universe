@@ -1384,7 +1384,7 @@ def daily_job():
             detailed_report_url=detailed_url
         )
     except Exception as ex:
-        logger.error("Email not sent:\n%s", ex)
+        logger.error(f"Email not sent:\n{ex}")
         print(Fore.RED + "Email not sent" + Fore.RESET)
         pass
 
