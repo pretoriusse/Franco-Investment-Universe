@@ -1166,7 +1166,7 @@ def compress_pdf(filename):
     return compressed_filename
 
 
-def create_detailed_pdf(data, stock_images, filename, total_value_next_week, total_value_next_month, summary_report=False):
+def create_detailed_pdf(data, stock_images, filename, total_value_next_week, total_value_next_month, summary_report=False, today=""):
     print(f"Creating PDF report: {filename}")
     options = {
         'page-size': 'Letter',
@@ -1197,6 +1197,7 @@ def create_detailed_pdf(data, stock_images, filename, total_value_next_week, tot
         template = env.get_template('summary_template.html')
         rendered = template.render(
             top_bottom_data=top_bottom_data,
+            today=today,
             summary=create_summary(data, total_value_next_week, total_value_next_month),
             stock_images=stock_images
         )
@@ -1205,6 +1206,7 @@ def create_detailed_pdf(data, stock_images, filename, total_value_next_week, tot
         template = env.get_template('detailed_template.html')
         rendered = template.render(
             stocks=data.to_dict(orient='records'),
+            today=today,
             summary=create_summary(data, total_value_next_week, total_value_next_month),
             stock_images=stock_images
         )
@@ -1350,12 +1352,12 @@ def daily_job():
 
     if SUMMARY_REPORT:
         summary_pdf_filename = os.path.join(reports_dir, f'{today}', 'adjusted_close_summary.pdf')
-        create_detailed_pdf(stock_data, stock_images, summary_pdf_filename, total_value_next_week, total_value_next_month, summary_report=True)
+        create_detailed_pdf(stock_data, stock_images, summary_pdf_filename, total_value_next_week, total_value_next_month, summary_report=True, today=today)
         summary_url = upload_to_spaces(summary_pdf_filename, SPACES_KEY, SPACES_SECRET, SPACES_BUCKET, SPACES_REGION, SPACES_URL, today)
         attachment_urls.append(summary_url)
     
     detailed_pdf_filename = os.path.join(reports_dir, f'{today}', 'adjusted_close_detailed.pdf')
-    create_detailed_pdf(stock_data, stock_images, detailed_pdf_filename, total_value_next_week, total_value_next_month, summary_report=False)
+    create_detailed_pdf(stock_data, stock_images, detailed_pdf_filename, total_value_next_week, total_value_next_month, summary_report=False, today=today)
     detailed_url = upload_to_spaces(detailed_pdf_filename, SPACES_KEY, SPACES_SECRET, SPACES_BUCKET, SPACES_REGION, SPACES_URL, today)
     attachment_urls.append(detailed_url)
     
