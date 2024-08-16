@@ -1341,13 +1341,13 @@ def daily_job():
         summary_pdf_filename = os.path.join(reports_dir, f'{today}', 'adjusted_close_summary.pdf')
         create_detailed_pdf(stock_data, stock_images, summary_pdf_filename, total_value_next_week, total_value_next_month, summary_report=True)
         compressed_summary_path = compress_pdf(summary_pdf_filename)
-        summary_url = upload_to_spaces(compressed_summary_path, SPACES_KEY, SPACES_SECRET, SPACES_BUCKET, SPACES_REGION, SPACES_URL)
+        summary_url = upload_to_spaces(compressed_summary_path, SPACES_KEY, SPACES_SECRET, SPACES_BUCKET, SPACES_REGION, SPACES_URL, today)
         attachment_urls.append(summary_url)
     
     detailed_pdf_filename = os.path.join(reports_dir, f'{today}', 'adjusted_close_detailed.pdf')
     create_detailed_pdf(stock_data, stock_images, detailed_pdf_filename, total_value_next_week, total_value_next_month, summary_report=False)
     compressed_detailed_path = compress_pdf(detailed_pdf_filename)
-    detailed_url = upload_to_spaces(compressed_detailed_path, SPACES_KEY, SPACES_SECRET, SPACES_BUCKET, SPACES_REGION, SPACES_URL)
+    detailed_url = upload_to_spaces(compressed_detailed_path, SPACES_KEY, SPACES_SECRET, SPACES_BUCKET, SPACES_REGION, SPACES_URL, today)
     attachment_urls.append(detailed_url)
     
     print(Fore.GREEN + "PDF created and uploaded" + Fore.RESET)
