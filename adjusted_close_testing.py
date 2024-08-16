@@ -1248,31 +1248,42 @@ def create_summary(data, total_value_next_week, total_value_next_month):
     return summary
 
 
-def send_email(subject, template_path, top_bottom_data, summary_report_url, detailed_report_url, reciepients=[formataddr(("Raine Pretorius", 'raine.pretorius1@gmail.com')), formataddr(("Franco Pretorius", 'francopret@gmail.com'))]):
-    print(Fore.LIGHTGREEN_EX + "Sending email" + Fore.RESET)
-    reciepients = [formataddr(("Raine Pretorius", 'raine.pretorius1@gmail.com'))]
-    message = MIMEMultipart()
-    message['From'] = formataddr(("Stock Bot", EMAIL_ADDRESS))
-    message['To'] = ','.join(reciepients)
-    message['Bcc'] = ','.join(reciepients)
-    message['Subject'] = subject
+def send_email(subject, summary_report_url, detailed_report_url, top_bottom_data):
+    try:
+        # Load the HTML template
+        env = Environment(loader=FileSystemLoader('.'))
+        template = env.get_template('email_template.html')
 
-    # Load the HTML template
-    env = Environment(loader=FileSystemLoader('.'))
-    template = env.get_template(template_path)
-    html_content = template.render(
-        top_bottom_data=top_bottom_data,
-        summary_report_url=summary_report_url,
-        detailed_report_url=detailed_report_url
-    )
+        # Render the HTML with the passed data
+        html_content = template.render(
+            top_bottom_data=top_bottom_data,
+            summary_report_url=summary_report_url,
+            detailed_report_url=detailed_report_url
+        )
 
-    message.attach(MIMEText(html_content, 'html'))
+        # Prepare the email message
+        message = MIMEMultipart()
+        message['From'] = formataddr(("Stock Bot", EMAIL_ADDRESS))
+        message['To'] = ','.join(
+            [formataddr(("Raine Pretorius", 'raine.pretorius1@gmail.com')),
+             formataddr(("Franco Pretorius", 'francopret@gmail.com'))]
+        )
+        message['Subject'] = subject
 
-    with smtplib.SMTP(SERVER_ADDRESS, SERVER_PORT) as server:
-        server.starttls()
-        server.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
-        server.send_message(message)
-    print(Fore.GREEN + "Email sent" + Fore.RESET)
+        # Attach the HTML content
+        message.attach(MIMEText(html_content, 'html'))
+
+        # Send the email
+        with smtplib.SMTP(SERVER_ADDRESS, SERVER_PORT) as server:
+            server.starttls()
+            server.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
+            server.send_message(message)
+
+        print("Email sent successfully")
+
+    except Exception as ex:
+        logging.error("Email not sent:\n%s", ex)
+        print("Email not sent")
 
 
 def daily_job():
@@ -1353,41 +1364,35 @@ def daily_job():
     
     print(Fore.GREEN + "PDF created and uploaded" + Fore.RESET)
 
-    try:
-        # Prepare the data for the email template
-        top_bottom_data = {
-            'Z_Score': {
-                'top_10': stock_data.nlargest(10, 'Z-Score').to_dict(orient='records'),
-                'bottom_10': stock_data.nsmallest(10, 'Z-Score').to_dict(orient='records')
-            },
-            'Next_Week_Prediction_Change': {
-                'top_10': stock_data.nlargest(10, 'Next_Week_Prediction_Change').to_dict(orient='records'),
-                'bottom_10': stock_data.nsmallest(10, 'Next_Week_Prediction_Change').to_dict(orient='records')
-            },
-            'Next_Month_Prediction_Change': {
-                'top_10': stock_data.nlargest(10, 'Next_Month_Prediction_Change').to_dict(orient='records'),
-                'bottom_10': stock_data.nsmallest(10, 'Next_Month_Prediction_Change').to_dict(orient='records')
-            },
-            'Overbought_Oversold_Value': {
-                'top_10': stock_data.nlargest(10, 'Overbought_Oversold_Value').to_dict(orient='records'),
-                'bottom_10': stock_data.nsmallest(10, 'Overbought_Oversold_Value').to_dict(orient='records')
-            }
-            # Add more metrics as needed
+    # Prepare the data for the email template
+    top_bottom_data = {
+        'Z_Score': {
+            'top_10': stock_data.nlargest(10, 'Z-Score').to_dict(orient='records'),
+            'bottom_10': stock_data.nsmallest(10, 'Z-Score').to_dict(orient='records')
+        },
+        'Next_Week_Prediction_Change': {
+            'top_10': stock_data.nlargest(10, 'Next_Week_Prediction_Change').to_dict(orient='records'),
+            'bottom_10': stock_data.nsmallest(10, 'Next_Week_Prediction_Change').to_dict(orient='records')
+        },
+        'Next_Month_Prediction_Change': {
+            'top_10': stock_data.nlargest(10, 'Next_Month_Prediction_Change').to_dict(orient='records'),
+            'bottom_10': stock_data.nsmallest(10, 'Next_Month_Prediction_Change').to_dict(orient='records')
+        },
+        'Overbought_Oversold_Value': {
+            'top_10': stock_data.nlargest(10, 'Overbought_Oversold_Value').to_dict(orient='records'),
+            'bottom_10': stock_data.nsmallest(10, 'Overbought_Oversold_Value').to_dict(orient='records')
         }
+        # Add more metrics as needed
+    }
 
-        # Send the email with the report links
-        send_email(
-            subject=f'Daily Stock Report {today}',
-            summary_report_url=summary_url,
-            detailed_report_url=detailed_url,
-            top_bottom_data=top_bottom_data,
-            template_path='email_template.html'
-        )
-    except Exception as ex:
-        logger.error(f"Email not sent:\n{ex}")
-        print(Fore.RED + "Email not sent" + Fore.RESET)
-        pass
-
+    # Send the email with the report links
+    send_email(
+        subject=f'Daily Stock Report {today}',
+        summary_report_url=summary_url,
+        detailed_report_url=detailed_url,
+        top_bottom_data=top_bottom_data
+    )
+    
     print("Job completed" + Fore.RESET)
  
 
