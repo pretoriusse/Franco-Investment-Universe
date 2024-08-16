@@ -2,7 +2,6 @@ import os
 import time
 import json
 import gc
-import threading
 import logging
 import numpy as np
 import pandas as pd
@@ -15,9 +14,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 import re
-import tensorflow as tf
-import subprocess
 import schedule  # Import the schedule library
+import subprocess
 
 try:
     from ..assets import database_queries as db_queries  # Importing database queries
@@ -27,8 +25,6 @@ except ImportError:
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
-tf.get_logger().setLevel('ERROR')
-
 
 def pull_and_merge_trained_models(branch_name="main"):
     try:
@@ -58,18 +54,12 @@ def pull_and_merge_trained_models(branch_name="main"):
 
 
 def make_dates_timezone_naive(data):
-    try:
-        data['date'] = pd.to_datetime(data['date']).dt.tz_localize(None)
-        return data
-    except KeyError:
-        data['date'] = pd.to_datetime(data['Date']).dt.tz_localize(None)
-        return data
-
+    data['date'] = pd.to_datetime(data['date']).dt.tz_localize(None)
+    return data
 
 def sanitize_ticker(ticker):
     sanitized_ticker = re.sub(r'[^A-Za-z0-9.]', '', ticker)
     return sanitized_ticker
-
 
 def calculate_accuracy(y_true, y_pred, tolerance=0.05):
     y_true = np.array(y_true)
@@ -78,6 +68,8 @@ def calculate_accuracy(y_true, y_pred, tolerance=0.05):
     return accuracy * 100
 
 def train_new_model(X, y, model_dir, model_path, hparams, sanitized_ticker):
+    logger.info("Started training for %s", sanitized_ticker)
+    print("Started training for %s", sanitized_ticker)
     clear_session()
     os.makedirs(model_dir, exist_ok=True)
     if os.path.exists(model_path):
@@ -118,7 +110,7 @@ def train_new_model(X, y, model_dir, model_path, hparams, sanitized_ticker):
     clear_session()
 
 def load_model_metadata(model_dir):
-    metadata_path = os.path.join(model_dir, 'metadata.json')
+    metadata_path = os.path.join(model_dir, 'close_model_metadata.json')
     if os.path.exists(metadata_path):
         with open(metadata_path, 'r') as f:
             return json.load(f)
@@ -177,16 +169,21 @@ def check_and_train_model(ticker, hparams, seq_length=60):
         train_new_model(X_train, y_train, model_dir, model_path, hparams, sanitized_ticker)
 
 def run_training_loop(hparams):
-    df: pd.DataFrame = db_queries.fetch_stock_and_commodity_universe_from_db()
+    df: pd.DataFrame = db_queries.fetch_stock_universe_from_db()
 
     for index, row in df.iterrows():
-        if "=" in row['code']:
+        if "=" in row['code'] or row['commodity'] or "RBO" in row['code']:
             continue
+        sanitized_ticker = sanitize_ticker(row['code'])
+        model_dir = os.path.join('models', sanitized_ticker)
+        model_path = os.path.join(model_dir, f'{sanitized_ticker}_Close_Model.keras')
+
+        if os.path.exists(model_path):
+            continue
+
         check_and_train_model(row['code'], hparams)
         
     logger.info("Completed a full training check cycle.")
-        
-    pull_and_merge_trained_models("main")
 
 def job():
     hparams = {

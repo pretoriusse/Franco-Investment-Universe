@@ -39,6 +39,8 @@ from assets import upload_history, zar_process, dividends, fetch_daily_commodity
 from assets.const import EMAIL_ADDRESS, SERVER_ADDRESS, SERVER_PORT, EMAIL_PASSWORD
 from assets import database_queries as db_queries  # Importing database queries
 from PyPDF2 import PdfReader, PdfWriter
+import boto3
+from botocore.exceptions import NoCredentialsError
 
 # Colorama init
 colorama_init()
@@ -52,6 +54,13 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # Suppress TensorFlow warnings
 mlp.rcParams['figure.max_open_warning'] = 200  # Increase the limit to 100 or any suitable number
 csv_file = 'investment_universe.csv'  # CSV file with your stock data
 graph_dir = 'plots'
+
+# DigitalOcean Spaces credentials
+SPACES_KEY = 'DO00W9U289PF7UNPEPGV'
+SPACES_SECRET = 'aK9NjzisQNh80HGdUbNSb7FkXkV2eg/Lydr68FBRnTA'
+SPACES_REGION = 'nyc3'
+SPACES_BUCKET = 'pretoriusresearch'
+SPACES_URL = f'https://{SPACES_BUCKET}.{SPACES_REGION}.digitaloceanspaces.com'
 
 # Path to wkhtmltopdf executable
 path_wkhtmltopdf = r'/usr/bin/wkhtmltopdf'
@@ -932,6 +941,195 @@ def fetch_data(hparams: dict):
     return stocks_df, stock_images, total_value_next_week, total_value_next_month
 
 
+def generate_bollinger_and_overbought_oversold_adjusted_close():
+    os.makedirs(graph_dir, exist_ok=True)
+
+    # Load tickers from CSV
+    df: pd.DataFrame = db_queries.fetch_stock_universe_from_db()
+    
+    threads:list[threading.Thread] = []
+    for index, row in df.iterrows():
+        #process_ticker_adjusted_close(row['code'], row['Commodity'])
+        thread = threading.Thread(target=process_ticker_adjusted_close, args=(row['code'], row['commodity'], row['share_name']), name=f"Bollinger {row['code']}")
+        thread.start()
+        time.sleep(1)
+        threads.append(thread)
+
+    for thread in threads:
+        thread.join()
+
+
+# Function to calculate RSI
+def rsi_calculate(data, window=14):
+    delta = data['Adj Close'].diff()
+    gain = (delta.where(delta > 0, 0)).fillna(0)
+    loss = (-delta.where(delta < 0, 0)).fillna(0)
+    avg_gain = gain.rolling(window=window, min_periods=1).mean()
+    avg_loss = loss.rolling(window=window, min_periods=1).mean()
+    rs = avg_gain / avg_loss
+    rsi = 100 - (100 / (1 + rs))
+    return rsi
+
+
+def calculate_rsi_adjusted_close(data, market, sector, ticker):
+    rsi_1m_sector = 0
+    rsi_3m_sector = 0
+    rsi_6m_sector = 0
+    rsi_1m_market = 0
+    rsi_3m_market = 0
+    rsi_6m_market = 0
+
+    # Ensure the date index is set
+    data.set_index(pd.to_datetime(data.index), inplace=True)
+    market.set_index(pd.to_datetime(market.index), inplace=True)
+    sector.set_index(pd.to_datetime(sector.index), inplace=True)
+
+    # Create a unified date index
+    unified_index = data.index.union(market.index).union(sector.index)
+
+    # Reindex all data frames to the unified index
+    data = data.reindex(unified_index).ffill()
+    market = market.reindex(unified_index).ffill()
+    sector = sector.reindex(unified_index).ffill()
+
+    # Combine the DataFrames
+    combined_df = pd.concat([data, market, sector], axis=1)
+
+    # Save the combined DataFrame to a CSV file
+    ticker = ticker.replace('.JO', '')
+    os.makedirs(os.path.join('data', ticker), exist_ok=True)
+    combined_df.to_csv(f"data/{ticker}/unified_data.csv")
+
+    try:
+        stock_now = data['Adj Close'].iloc[-1]
+
+        stock_20_day = data['Adj Close'].iloc[-20]
+
+        stock_60_day = data['Adj Close'].iloc[-60]
+
+        stock_120_day = data['Adj Close'].iloc[-120]
+
+    except Exception as ex:
+        print(Fore.RED + f"{ex} for {ticker}")
+        print(Fore.RESET)
+
+    try:
+        market_now = market['Adj Close'].iloc[-1]
+
+        market_20_day = market['Adj Close'].iloc[-20]
+
+        market_60_day = market['Adj Close'].iloc[-60]
+
+        market_120_day = market['Adj Close'].iloc[-120]
+
+        # Market RSI
+        stock_on_stock_20_day = stock_now / stock_20_day
+        market_on_market_20_day = market_now / market_20_day
+        rsi_20_day = stock_on_stock_20_day / market_on_market_20_day
+
+        stock_on_stock_60_day = stock_now / stock_60_day
+        market_on_market_60_day = market_now / market_60_day
+        rsi_60_day = stock_on_stock_60_day / market_on_market_60_day
+
+        stock_on_stock_120_day = (stock_now / stock_120_day) + 0.2
+        market_on_market_120_day = (market_now / market_120_day)
+        rsi_120_day = (stock_on_stock_120_day / market_on_market_120_day)
+
+        rsi_1m_market = rsi_20_day
+        rsi_3m_market = rsi_60_day
+        rsi_6m_market = rsi_120_day
+
+    except Exception as ex:
+        print(Fore.RED + f"{ex} for {ticker}")
+        print(Fore.RESET)
+
+    try:
+        sector_now = sector['Adj Close'].iloc[-1]
+
+        sector_20_day = sector['Adj Close'].iloc[-20]
+
+        sector_60_day = sector['Adj Close'].iloc[-60]
+
+        sector_120_day = sector['Adj Close'].iloc[-120]
+
+        # Sector RSI
+        stock_on_stock_20_day = stock_now / stock_20_day
+        sector_on_sector_20_day = sector_now / sector_20_day
+        sector_rsi_20_day = stock_on_stock_20_day / sector_on_sector_20_day
+
+        stock_on_stock_60_day = stock_now / stock_60_day
+        sector_on_sector_60_day = sector_now / sector_60_day
+        sector_rsi_60_day = stock_on_stock_60_day / sector_on_sector_60_day
+
+        stock_on_stock_120_day = stock_now / stock_120_day
+        sector_on_sector_120_day = sector_now / sector_120_day
+        sector_rsi_120_day = stock_on_stock_120_day / sector_on_sector_120_day
+
+        rsi_1m_sector = sector_rsi_20_day
+        rsi_3m_sector = sector_rsi_60_day
+        rsi_6m_sector = sector_rsi_120_day
+
+    except Exception as ex:
+        print(Fore.RED + f"{ex} for {ticker}")
+        print(Fore.RESET)
+
+    return {
+        'rsi_1m_sector': rsi_1m_sector,
+        'rsi_3m_sector': rsi_3m_sector,
+        'rsi_6m_sector': rsi_6m_sector,
+        'rsi_1m_market': rsi_1m_market,
+        'rsi_3m_market': rsi_3m_market,
+        'rsi_6m_market': rsi_6m_market
+    }
+
+
+# Assuming we have historical data for each stock to calculate RSI
+def add_adjusted_close_rsi_comparisons(df):
+    starttime_dt = datetime.now() - timedelta(weeks=104)
+    start_date = starttime_dt.strftime("%Y-%m-%d")
+    end_date = datetime.now().strftime("%Y-%m-%d")
+
+    for index, row in df.iterrows():
+        ticker = row['code']
+        print(Fore.LIGHTMAGENTA_EX + f"Generating RSI for: {ticker}" + Fore.RESET)
+        comparison_sector = row['rsi_comparison_sector']
+        comparison_market = row['rsi_comparison_market']
+        # Load historical data for the ticker
+        historical_data = yf.download(f"{ticker}", start=start_date, end=end_date, interval='1d')
+
+        comparison_sector_data = yf.download(f"{comparison_sector}", start=start_date, end=end_date, interval='1d')
+
+        comparison_market_data = yf.download(f"{comparison_market}", start=start_date, end=end_date, interval='1d')
+
+        # Calculate RSI for the last 1 month, 3 months, and 6 months
+        rsi = calculate_rsi_adjusted_close(historical_data, comparison_market_data, comparison_sector_data, ticker)
+
+        df.at[index, 'SECTOR RSI 1M'] = round(rsi['rsi_1m_sector'], 2)
+        df.at[index, 'SECTOR RSI 3M'] = round(rsi['rsi_3m_sector'], 2)
+        df.at[index, 'SECTOR RSI 6M'] = round(rsi['rsi_6m_sector'], 2)
+
+        df.at[index, 'MARKET RSI 1M'] = round(rsi['rsi_1m_market'], 2)
+        df.at[index, 'MARKET RSI 3M'] = round(rsi['rsi_3m_market'], 2)
+        df.at[index, 'MARKET RSI 6M'] = round(rsi['rsi_6m_market'], 2)
+
+    return df
+
+
+# Reporting
+def upload_to_spaces(file_path, spaces_access_key, spaces_secret_key, bucket_name, region_name, endpoint_url):
+    session = boto3.session.Session()
+    client = session.client('s3',
+                            region_name=region_name,
+                            endpoint_url=endpoint_url,
+                            aws_access_key_id=spaces_access_key,
+                            aws_secret_access_key=spaces_secret_key)
+
+    file_name = os.path.basename(file_path)
+    client.upload_file(file_path, bucket_name, file_name, ExtraArgs={'ACL': 'public-read'})
+    
+    return f"{endpoint_url}/{bucket_name}/{file_name}"
+
+
 def prepare_stock_images(top_bottom_data):
     stock_images = []
     added_tickers = set()
@@ -1076,180 +1274,6 @@ def send_email(subject, body, attachments=None):
     print(Fore.GREEN + "Email sent" + Fore.RESET)
 
 
-def generate_bollinger_and_overbought_oversold_adjusted_close():
-    os.makedirs(graph_dir, exist_ok=True)
-
-    # Load tickers from CSV
-    df: pd.DataFrame = db_queries.fetch_stock_universe_from_db()
-    
-    threads:list[threading.Thread] = []
-    for index, row in df.iterrows():
-        #process_ticker_adjusted_close(row['code'], row['Commodity'])
-        thread = threading.Thread(target=process_ticker_adjusted_close, args=(row['code'], row['commodity'], row['share_name']), name=f"Bollinger {row['code']}")
-        thread.start()
-        time.sleep(1)
-        threads.append(thread)
-
-    for thread in threads:
-        thread.join()
-
-
-# Function to calculate RSI
-def rsi_calculate(data, window=14):
-    delta = data['Adj Close'].diff()
-    gain = (delta.where(delta > 0, 0)).fillna(0)
-    loss = (-delta.where(delta < 0, 0)).fillna(0)
-    avg_gain = gain.rolling(window=window, min_periods=1).mean()
-    avg_loss = loss.rolling(window=window, min_periods=1).mean()
-    rs = avg_gain / avg_loss
-    rsi = 100 - (100 / (1 + rs))
-    return rsi
-
-
-def calculate_rsi_adjusted_close(data, market, sector, ticker):
-    rsi_1m_sector = 0
-    rsi_3m_sector = 0
-    rsi_6m_sector = 0
-    rsi_1m_market = 0
-    rsi_3m_market = 0
-    rsi_6m_market = 0
-
-    # Ensure the date index is set
-    data.set_index(pd.to_datetime(data.index), inplace=True)
-    market.set_index(pd.to_datetime(market.index), inplace=True)
-    sector.set_index(pd.to_datetime(sector.index), inplace=True)
-
-    # Create a unified date index
-    unified_index = data.index.union(market.index).union(sector.index)
-
-    # Reindex all data frames to the unified index
-    data = data.reindex(unified_index).ffill()
-    market = market.reindex(unified_index).ffill()
-    sector = sector.reindex(unified_index).ffill()
-
-    # Combine the DataFrames
-    combined_df = pd.concat([data, market, sector], axis=1)
-
-    # Save the combined DataFrame to a CSV file
-    ticker = ticker.replace('.JO', '')
-    os.makedirs(os.path.join('data', ticker), exist_ok=True)
-    combined_df.to_csv(f"data/{ticker}/unified_data.csv")
-
-    try:
-        stock_now = data['Adj Close'].iloc[-1]
-
-        stock_20_day = data['Adj Close'].iloc[-20]
-
-        stock_60_day = data['Adj Close'].iloc[-60]
-
-        stock_120_day = data['Adj Close'].iloc[-120]
-
-    except Exception as ex:
-        print(Fore.RED + f"{ex} for {ticker}")
-        print(Fore.RESET)
-
-    try:
-        market_now = market['Adj Close'].iloc[-1]
-
-        market_20_day = market['Adj Close'].iloc[-20]
-
-        market_60_day = market['Adj Close'].iloc[-60]
-
-        market_120_day = market['Adj Close'].iloc[-120]
-
-        # Market RSI
-        stock_on_stock_20_day = stock_now / stock_20_day
-        market_on_market_20_day = market_now / market_20_day
-        rsi_20_day = stock_on_stock_20_day / market_on_market_20_day
-
-        stock_on_stock_60_day = stock_now / stock_60_day
-        market_on_market_60_day = market_now / market_60_day
-        rsi_60_day = stock_on_stock_60_day / market_on_market_60_day
-
-        stock_on_stock_120_day = (stock_now / stock_120_day) + 0.2
-        market_on_market_120_day = (market_now / market_120_day)
-        rsi_120_day = (stock_on_stock_120_day / market_on_market_120_day)
-
-        rsi_1m_market = rsi_20_day
-        rsi_3m_market = rsi_60_day
-        rsi_6m_market = rsi_120_day
-
-    except Exception as ex:
-        print(Fore.RED + f"{ex} for {ticker}")
-        print(Fore.RESET)
-
-    try:
-        sector_now = sector['Adj Close'].iloc[-1]
-
-        sector_20_day = sector['Adj Close'].iloc[-20]
-
-        sector_60_day = sector['Adj Close'].iloc[-60]
-
-        sector_120_day = sector['Adj Close'].iloc[-120]
-
-        # Sector RSI
-        stock_on_stock_20_day = stock_now / stock_20_day
-        sector_on_sector_20_day = sector_now / sector_20_day
-        sector_rsi_20_day = stock_on_stock_20_day / sector_on_sector_20_day
-
-        stock_on_stock_60_day = stock_now / stock_60_day
-        sector_on_sector_60_day = sector_now / sector_60_day
-        sector_rsi_60_day = stock_on_stock_60_day / sector_on_sector_60_day
-
-        stock_on_stock_120_day = stock_now / stock_120_day
-        sector_on_sector_120_day = sector_now / sector_120_day
-        sector_rsi_120_day = stock_on_stock_120_day / sector_on_sector_120_day
-
-        rsi_1m_sector = sector_rsi_20_day
-        rsi_3m_sector = sector_rsi_60_day
-        rsi_6m_sector = sector_rsi_120_day
-
-    except Exception as ex:
-        print(Fore.RED + f"{ex} for {ticker}")
-        print(Fore.RESET)
-
-    return {
-        'rsi_1m_sector': rsi_1m_sector,
-        'rsi_3m_sector': rsi_3m_sector,
-        'rsi_6m_sector': rsi_6m_sector,
-        'rsi_1m_market': rsi_1m_market,
-        'rsi_3m_market': rsi_3m_market,
-        'rsi_6m_market': rsi_6m_market
-    }
-
-
-# Assuming we have historical data for each stock to calculate RSI
-def add_adjusted_close_rsi_comparisons(df, execute_time):
-    starttime_dt = datetime.now() - timedelta(weeks=104)
-    start_date = starttime_dt.strftime("%Y-%m-%d")
-    end_date = datetime.now().strftime("%Y-%m-%d")
-
-    for index, row in df.iterrows():
-        ticker = row['code']
-        print(Fore.LIGHTMAGENTA_EX + f"Generating RSI for: {ticker}" + Fore.RESET)
-        comparison_sector = row['rsi_comparison_sector']
-        comparison_market = row['rsi_comparison_market']
-        # Load historical data for the ticker
-        historical_data = yf.download(f"{ticker}", start=start_date, end=end_date, interval='1d')
-
-        comparison_sector_data = yf.download(f"{comparison_sector}", start=start_date, end=end_date, interval='1d')
-
-        comparison_market_data = yf.download(f"{comparison_market}", start=start_date, end=end_date, interval='1d')
-
-        # Calculate RSI for the last 1 month, 3 months, and 6 months
-        rsi = calculate_rsi_adjusted_close(historical_data, comparison_market_data, comparison_sector_data, ticker)
-
-        df.at[index, 'SECTOR RSI 1M'] = round(rsi['rsi_1m_sector'], 2)
-        df.at[index, 'SECTOR RSI 3M'] = round(rsi['rsi_3m_sector'], 2)
-        df.at[index, 'SECTOR RSI 6M'] = round(rsi['rsi_6m_sector'], 2)
-
-        df.at[index, 'MARKET RSI 1M'] = round(rsi['rsi_1m_market'], 2)
-        df.at[index, 'MARKET RSI 3M'] = round(rsi['rsi_3m_market'], 2)
-        df.at[index, 'MARKET RSI 6M'] = round(rsi['rsi_6m_market'], 2)
-
-    return df
-
-
 def daily_job():
     start_time = datetime.now()
     execute_time = datetime.today().strftime('%Y-%m-%d %H:%M')
@@ -1291,7 +1315,7 @@ def daily_job():
 
     print(Fore.GREEN + "Data fetched and predictions done." + Fore.RESET)
 
-    stock_data = add_adjusted_close_rsi_comparisons(stock_data, execute_time.replace(':', ''))
+    stock_data = add_adjusted_close_rsi_comparisons(stock_data)
 
     stock_data.to_csv(os.path.join('runs', f"{execute_time.replace(':', '')}_adjusted_close.csv"), index=False)
     stock_data.to_csv(os.path.join('data', 'runs', f"{execute_time.replace(':', '')}_adjusted_close.csv"), index=False)

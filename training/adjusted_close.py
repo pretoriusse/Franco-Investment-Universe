@@ -68,6 +68,8 @@ def calculate_accuracy(y_true, y_pred, tolerance=0.05):
     return accuracy * 100
 
 def train_new_model(X, y, model_dir, model_path, hparams, sanitized_ticker):
+    logger.info("Started training for %s", sanitized_ticker)
+    print("Started training for %s", sanitized_ticker)
     clear_session()
     os.makedirs(model_dir, exist_ok=True)
     if os.path.exists(model_path):
