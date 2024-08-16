@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>Daily Stock Report</title>
@@ -34,14 +34,18 @@
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 20px;
+            table-layout: fixed;
         }
         th, td {
             border: 1px solid #dddddd;
-            text-align: left;
-            padding: 12px;
+            text-align: center;
+            padding: 8px;
+            word-wrap: break-word;
+            font-size: 12px;
         }
         th {
-            background-color: #f2f2f2;
+            background-color: #0073e6;
+            color: #ffffff;
             font-weight: bold;
         }
         .positive {
@@ -50,21 +54,30 @@
         .negative {
             color: red;
         }
-        .buttons {
+        .legend {
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        .legend span {
+            display: inline-block;
+            margin-right: 20px;
+        }
+        .button-container {
             text-align: center;
             margin: 20px 0;
         }
-        .buttons a {
-            display: inline-block;
-            padding: 10px 20px;
-            margin: 5px;
+        .download-button {
             background-color: #4CAF50;
             color: white;
+            padding: 10px 20px;
+            text-align: center;
             text-decoration: none;
-            border-radius: 5px;
-        }
-        .buttons a.detailed {
-            background-color: #2196F3;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 4px;
+            border: none;
         }
     </style>
 </head>
@@ -74,44 +87,71 @@
             <img src="https://cdn1.pretoriusse.net/CDN/Logo/Logo/cover.png" alt="Pretoriusse Logo">
         </div>
 
-        {% for metric, data in top_bottom_data.items() %}
-        <h2>{{ metric.replace('_', ' ') }}</h2>
-        <h3>Top 10</h3>
-        <table>
-            <tr>
-                <th>Ticker</th>
-                <th>Name</th>
-                <th>{{ metric.replace('_', ' ') }}</th>
-            </tr>
-            {% for stock in data.top_10 %}
-            <tr>
-                <td><a href="https://finance.yahoo.com/quote/{{ stock['code'] }}/">{{ stock['code'] }}</a></td>
-                <td>{{ stock['share_name'] }}</td>
-                <td>{{ stock[metric] }}</td>
-            </tr>
-            {% endfor %}
-        </table>
+        <div class="legend">
+            <p><strong>Legend:</strong></p>
+            <span>○ -N : Signal went from <strong>Buy</strong> to <strong>Neutral</strong></span>
+            <span>○ +N : Signal went from <strong>Sell</strong> to <strong>Neutral</strong></span>
+            <span>○ +B : Signal went from <strong>Neutral</strong> to <strong>Buy</strong></span>
+            <span>○ -S : Signal went from <strong>Neutral</strong> to <strong>Sell</strong></span>
+        </div>
 
-        <h3>Bottom 10</h3>
+        {% if 'RSI' in top_bottom_data %}
+        <h2>RSI</h2>
         <table>
-            <tr>
-                <th>Ticker</th>
-                <th>Name</th>
-                <th>{{ metric.replace('_', ' ') }}</th>
-            </tr>
-            {% for stock in data.bottom_10 %}
-            <tr>
-                <td><a href="https://finance.yahoo.com/quote/{{ stock['code'] }}/">{{ stock['code'] }}</a></td>
-                <td>{{ stock['share_name'] }}</td>
-                <td>{{ stock[metric] }}</td>
-            </tr>
-            {% endfor %}
+            <thead>
+                <tr>
+                    <th>Highest</th>
+                    <th>Lowest</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>{{ top_bottom_data['RSI'].top_10[0]['share_name'] }}<br>{{ top_bottom_data['RSI'].top_10[0]['value'] | floatformat:2 }}%</td>
+                    <td>{{ top_bottom_data['RSI'].bottom_10[0]['share_name'] }}<br>{{ top_bottom_data['RSI'].bottom_10[0]['value'] | floatformat:2 }}%</td>
+                </tr>
+            </tbody>
         </table>
-        {% endfor %}
+        {% endif %}
 
-        <div class="buttons">
-            <a href="{{ summary_report_url }}" class="summary">Download Summary Report</a>
-            <a href="{{ detailed_report_url }}" class="detailed">Download Detailed Report</a>
+        {% if 'Prediction' in top_bottom_data %}
+        <h2>Prediction</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Highest</th>
+                    <th>Lowest</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>{{ top_bottom_data['Prediction'].top_10[0]['share_name'] }}<br>{{ top_bottom_data['Prediction'].top_10[0]['value'] | floatformat:2 }}%</td>
+                    <td>{{ top_bottom_data['Prediction'].bottom_10[0]['share_name'] }}<br>{{ top_bottom_data['Prediction'].bottom_10[0]['value'] | floatformat:2 }}%</td>
+                </tr>
+            </tbody>
+        </table>
+        {% endif %}
+
+        {% if 'Z_Score' in top_bottom_data %}
+        <h2>Z-Score</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Highest</th>
+                    <th>Lowest</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>{{ top_bottom_data['Z_Score'].top_10[0]['share_name'] }}<br>{{ top_bottom_data['Z_Score'].top_10[0]['value'] | floatformat:2 }}</td>
+                    <td>{{ top_bottom_data['Z_Score'].bottom_10[0]['share_name'] }}<br>{{ top_bottom_data['Z_Score'].bottom_10[0]['value'] | floatformat:2 }}</td>
+                </tr>
+            </tbody>
+        </table>
+        {% endif %}
+
+        <div class="button-container">
+            <a href="{{ summary_report_url }}" class="download-button">Download Summary Report</a>
+            <a href="{{ detailed_report_url }}" class="download-button">Download Detailed Report</a>
         </div>
     </div>
 </body>
