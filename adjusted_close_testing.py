@@ -1380,7 +1380,8 @@ def daily_job():
             subject=f'Daily Stock Report {today}',
             summary_report_url=summary_url,
             detailed_report_url=detailed_url,
-            top_bottom_data=top_bottom_data
+            top_bottom_data=top_bottom_data,
+            template_path='email_template.html'
         )
     except Exception as ex:
         logger.error(f"Email not sent:\n{ex}")
