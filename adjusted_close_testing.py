@@ -74,7 +74,7 @@ METRIC_ACCURACY = 'accuracy'
 
 # ENABLE DEBUGGING and or Predictions
 DEBUGGING = False
-PREDICTION = False
+PREDICTION = True
 SUMMARY_REPORT = True
 
 DIRECTORIES = ['data', 'logs', 'plots', 'reports', 'models', 'runs', 'data/runs']
@@ -209,6 +209,7 @@ def make_dates_timezone_naive(data):
     return data
 
 
+# Plotting
 def plot_price_and_bollinger_bands_adjusted_close(data, ticker):
     data['date'] = pd.to_datetime(data['date'])
     end_date = data['date'].max()
@@ -571,6 +572,7 @@ def plot_volume_data_last_two_years(unscaled_volume, ticker, next_week_volume_pr
         logger.error(f"Error saving volume plot to file: {e}")
 
 
+# Processing data
 def process_ticker_adjusted_close(ticker, commodity, name):
     os.makedirs(os.path.join('data', ticker.replace('.JO', '')), exist_ok=True)
     # Fetching data for the specified period
@@ -770,19 +772,10 @@ def predict_adjusted_close_value(hist, hparams, ticker):
     model_metadata = load_model_metadata(model_dir)
     
     # Check if model exists and if there is new data to train on
-    if os.path.exists(model_path) and model_metadata and model_metadata.get('last_trained_date'):
-        last_trained_date = pd.to_datetime(model_metadata['last_trained_date'])
+    if os.path.exists(model_path):
         
-        if last_date_in_data <= last_trained_date:
-            logger.info(f"No new data since last training on {last_trained_date}. Loading existing model without retraining.")
-            model: SequentialType = load_model(model_path)
-        else:
-            logger.info(f"New data available since last training on {last_trained_date}. Retraining model.")
-            # Subset the historical data for retraining
-            hist = hist[hist['date'] > last_trained_date]
-            X, y = create_sequences(hist['Adj Close'].values, seq_length)
-            X = X.reshape((X.shape[0], X.shape[1], 1))
-            X_train, X_test, y_train, y_test = train_new_model(X_train, y_train, model_dir, model_path, hparams, sanitized_ticker)
+        model: SequentialType = load_model(model_path)
+        
     else:
         logger.info(f"No existing model found for ticker: {ticker} or no metadata. Creating and training a new model.")
         model: SequentialType = train_new_model(X_train, y_train, model_dir, model_path, hparams, sanitized_ticker)
@@ -1252,21 +1245,20 @@ def create_summary(data, total_value_next_week, total_value_next_month):
     return summary
 
 
-def send_email(subject, body, attachments=None):
+def send_email(subject, body, attachment_urls=None):
+    recipients = [formataddr(("Raine Pretorius", 'raine.pretorius1@gmail.com'))]
+    #recipients = [formataddr(("Raine Pretorius", 'raine.pretorius1@gmail.com')), formataddr(("Franco Pretorius", 'francopret@gmail.com'))]
     print(Fore.LIGHTGREEN_EX + "Sending email" + Fore.RESET)
     message = MIMEMultipart()
     message['From'] = formataddr(("Stock Bot", EMAIL_ADDRESS))
-    message['To'] = ','.join(
-        [formataddr(("Raine Pretorius", 'raine.pretorius1@gmail.com')),
-         formataddr(("Franco Pretorius", 'francopret@gmail.com'))])
+    message['To'] = ','.join(recipients)
     message['Subject'] = subject
     message.attach(MIMEText(body, 'html'))
-    if attachments:
-        for attachment in attachments:
-            with open(attachment, 'rb') as file:
-                part = MIMEApplication(file.read(), Name=os.path.basename(attachment))
-                part['Content-Disposition'] = f'attachment; filename="{os.path.basename(attachment)}"'
-                message.attach(part)
+
+    if attachment_urls:
+        for url in attachment_urls:
+            body += f'<p><a href="{url}">Download the report</a></p>'
+
     with smtplib.SMTP(SERVER_ADDRESS, SERVER_PORT) as server:
         server.starttls()
         server.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
@@ -1290,6 +1282,7 @@ def daily_job():
         threads.append(thread)
         print(Fore.GREEN + f"{name} thread started" + Fore.RESET)
 
+    # Example threads to start
     #start_thread(zar_process.process_zar, 'Process ZAR')
     #start_thread(upload_history.main, 'Upload History')
     #start_thread(dividends.main, 'Dividend Upload')
@@ -1341,19 +1334,25 @@ def daily_job():
     print(Fore.MAGENTA + f"\nTime Took:\t{minutes} minutes\n" + Fore.RESET)
     
     os.makedirs(os.path.join(reports_dir, f'{today}'), exist_ok=True)
+    attachment_urls = []
+
     if SUMMARY_REPORT:
         summary_pdf_filename = os.path.join(reports_dir, f'{today}', 'summary.pdf')
         create_detailed_pdf(stock_data, stock_images, summary_pdf_filename, total_value_next_week, total_value_next_month, summary_report=True)
+        compressed_summary_path = compress_pdf(summary_pdf_filename)
+        summary_url = upload_to_spaces(compressed_summary_path, SPACES_KEY, SPACES_SECRET, SPACES_BUCKET, SPACES_REGION, SPACES_URL)
+        attachment_urls.append(summary_url)
     
     detailed_pdf_filename = os.path.join(reports_dir, f'{today}', 'detailed.pdf')
     create_detailed_pdf(stock_data, stock_images, detailed_pdf_filename, total_value_next_week, total_value_next_month, summary_report=False)
+    compressed_detailed_path = compress_pdf(detailed_pdf_filename)
+    detailed_url = upload_to_spaces(compressed_detailed_path, SPACES_KEY, SPACES_SECRET, SPACES_BUCKET, SPACES_REGION, SPACES_URL)
+    attachment_urls.append(detailed_url)
     
-    print(Fore.GREEN + "PDF created" + Fore.RESET)
-    
-    compressed_path = compress_pdf(summary_pdf_filename)
+    print(Fore.GREEN + "PDF created and uploaded" + Fore.RESET)
 
     try:
-        send_email(f'Daily Stock Report {today}', html_content, [compressed_path])
+        send_email(f'Daily Stock Report {today}', html_content, attachment_urls)
     except Exception as ex:
         logger.error("Email not sent:\n%s", ex)
         print(Fore.RED + "Email not sent" + Fore.RESET)
