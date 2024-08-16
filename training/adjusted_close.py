@@ -172,14 +172,11 @@ def run_training_loop(hparams):
     df: pd.DataFrame = db_queries.fetch_stock_universe_from_db()
 
     for index, row in df.iterrows():
-        if "=" in row['code'] or row['commodity'] or "RBO" in row['code']:
+        if "=" in row['code'] or row['commodity']:
             continue
         sanitized_ticker = sanitize_ticker(row['code'])
         model_dir = os.path.join('models', sanitized_ticker)
         model_path = os.path.join(model_dir, f'{sanitized_ticker}_Adjusted_Close_Model.keras')
-
-        if os.path.exists(model_path):
-            continue
 
         check_and_train_model(row['code'], hparams)
         

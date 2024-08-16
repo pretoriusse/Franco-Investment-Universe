@@ -178,9 +178,6 @@ def run_training_loop(hparams):
         model_dir = os.path.join('models', sanitized_ticker)
         model_path = os.path.join(model_dir, f'{sanitized_ticker}_Close_Model.keras')
 
-        if os.path.exists(model_path):
-            continue
-
         check_and_train_model(row['code'], hparams)
         
     logger.info("Completed a full training check cycle.")
