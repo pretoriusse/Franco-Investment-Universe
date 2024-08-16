@@ -1282,9 +1282,8 @@ def send_email(subject, summary_report_url, detailed_report_url, top_bottom_data
         print("Email sent successfully")
 
     except Exception as ex:
-        logging.error("Email not sent: %s", ex)
-        print("Email not sent")
-
+        # Properly log the exception with the full message
+        logging.error(f"Email not sent: {ex}")
 
 def daily_job():
     start_time = datetime.now()
@@ -1352,14 +1351,12 @@ def daily_job():
     if SUMMARY_REPORT:
         summary_pdf_filename = os.path.join(reports_dir, f'{today}', 'adjusted_close_summary.pdf')
         create_detailed_pdf(stock_data, stock_images, summary_pdf_filename, total_value_next_week, total_value_next_month, summary_report=True)
-        compressed_summary_path = compress_pdf(summary_pdf_filename)
-        summary_url = upload_to_spaces(compressed_summary_path, SPACES_KEY, SPACES_SECRET, SPACES_BUCKET, SPACES_REGION, SPACES_URL, today)
+        summary_url = upload_to_spaces(summary_pdf_filename, SPACES_KEY, SPACES_SECRET, SPACES_BUCKET, SPACES_REGION, SPACES_URL, today)
         attachment_urls.append(summary_url)
     
     detailed_pdf_filename = os.path.join(reports_dir, f'{today}', 'adjusted_close_detailed.pdf')
     create_detailed_pdf(stock_data, stock_images, detailed_pdf_filename, total_value_next_week, total_value_next_month, summary_report=False)
-    compressed_detailed_path = compress_pdf(detailed_pdf_filename)
-    detailed_url = upload_to_spaces(compressed_detailed_path, SPACES_KEY, SPACES_SECRET, SPACES_BUCKET, SPACES_REGION, SPACES_URL, today)
+    detailed_url = upload_to_spaces(detailed_pdf_filename, SPACES_KEY, SPACES_SECRET, SPACES_BUCKET, SPACES_REGION, SPACES_URL, today)
     attachment_urls.append(detailed_url)
     
     print(Fore.GREEN + "PDF created and uploaded" + Fore.RESET)

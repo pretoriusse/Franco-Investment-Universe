@@ -57,7 +57,7 @@
         <div class="header">
             <img src="https://cdn1.pretoriusse.net/CDN/Logo/Logo/cover.png" alt="Pretoriusse Logo">
         </div>
-
+        <h2>Summary Report for {{today}}</h2>
         {% for metric, data in top_bottom_data.items() %}
         <h2>{{ metric.replace('_', ' ') }}</h2>
         <h3>Top 10</h3>
