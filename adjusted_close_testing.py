@@ -1248,19 +1248,24 @@ def create_summary(data, total_value_next_week, total_value_next_month):
     return summary
 
 
-def send_email(subject, body, attachment_urls=None):
-    recipients = [formataddr(("Raine Pretorius", 'raine.pretorius1@gmail.com'))]
-    #recipients = [formataddr(("Raine Pretorius", 'raine.pretorius1@gmail.com')), formataddr(("Franco Pretorius", 'francopret@gmail.com'))]
+def send_email(subject, template_path, top_bottom_data, summary_report_url, detailed_report_url, reciepients=[formataddr(("Raine Pretorius", 'raine.pretorius1@gmail.com')), formataddr(("Franco Pretorius", 'francopret@gmail.com'))]):
     print(Fore.LIGHTGREEN_EX + "Sending email" + Fore.RESET)
+    reciepients = [formataddr(("Raine Pretorius", 'raine.pretorius1@gmail.com'))]
     message = MIMEMultipart()
     message['From'] = formataddr(("Stock Bot", EMAIL_ADDRESS))
-    message['To'] = ','.join(recipients)
+    message['To'] = ','.join(reciepients)
     message['Subject'] = subject
-    message.attach(MIMEText(body, 'html'))
 
-    if attachment_urls:
-        for url in attachment_urls:
-            body += f'<p><a href="{url}">Download the report</a></p>'
+    # Load the HTML template
+    env = Environment(loader=FileSystemLoader('.'))
+    template = env.get_template(template_path)
+    html_content = template.render(
+        top_bottom_data=top_bottom_data,
+        summary_report_url=summary_report_url,
+        detailed_report_url=detailed_report_url
+    )
+
+    message.attach(MIMEText(html_content, 'html'))
 
     with smtplib.SMTP(SERVER_ADDRESS, SERVER_PORT) as server:
         server.starttls()
@@ -1284,12 +1289,6 @@ def daily_job():
         thread.start()
         threads.append(thread)
         print(Fore.GREEN + f"{name} thread started" + Fore.RESET)
-
-    # Example threads to start
-    #start_thread(zar_process.process_zar, 'Process ZAR')
-    #start_thread(upload_history.main, 'Upload History')
-    #start_thread(dividends.main, 'Dividend Upload')
-    #start_thread(fetch_daily_commodity_data.main, 'Commodity Upload')
 
     for thread in threads:
         thread.join()
@@ -1327,8 +1326,7 @@ def daily_job():
     reports_dir = 'reports'
     os.makedirs(reports_dir, exist_ok=True)
 
-    template = env.get_template('detailed_template.html')
-    html_content = create_html_summary(stock_data, total_value_next_week, total_value_next_month, template)
+    template_path = 'email_template.html'
 
     end_time = datetime.now()
     running_time = end_time - start_time
@@ -1355,14 +1353,42 @@ def daily_job():
     print(Fore.GREEN + "PDF created and uploaded" + Fore.RESET)
 
     try:
-        send_email(f'Daily Stock Report {today}', html_content, attachment_urls)
+        # Prepare the data for the email template
+        top_bottom_data = {
+            'Z_Score': {
+                'top_10': stock_data.nlargest(10, 'Z-Score').to_dict(orient='records'),
+                'bottom_10': stock_data.nsmallest(10, 'Z-Score').to_dict(orient='records')
+            },
+            'Next_Week_Prediction_Change': {
+                'top_10': stock_data.nlargest(10, 'Next_Week_Prediction_Change').to_dict(orient='records'),
+                'bottom_10': stock_data.nsmallest(10, 'Next_Week_Prediction_Change').to_dict(orient='records')
+            },
+            'Next_Month_Prediction_Change': {
+                'top_10': stock_data.nlargest(10, 'Next_Month_Prediction_Change').to_dict(orient='records'),
+                'bottom_10': stock_data.nsmallest(10, 'Next_Month_Prediction_Change').to_dict(orient='records')
+            },
+            'Overbought_Oversold_Value': {
+                'top_10': stock_data.nlargest(10, 'Overbought_Oversold_Value').to_dict(orient='records'),
+                'bottom_10': stock_data.nsmallest(10, 'Overbought_Oversold_Value').to_dict(orient='records')
+            }
+            # Add more metrics as needed
+        }
+
+        # Send the email with the report links
+        send_email(
+            subject=f'Daily Stock Report {today}',
+            template_path=template_path,
+            top_bottom_data=top_bottom_data,
+            summary_report_url=summary_url,
+            detailed_report_url=detailed_url
+        )
     except Exception as ex:
         logger.error("Email not sent:\n%s", ex)
         print(Fore.RED + "Email not sent" + Fore.RESET)
         pass
 
     print("Job completed" + Fore.RESET)
-
+ 
 
 def setup_scheduler():
     schedule.every().day.at("06:30").do(daily_job)
