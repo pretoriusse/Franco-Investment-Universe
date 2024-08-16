@@ -1282,7 +1282,7 @@ def send_email(subject, summary_report_url, detailed_report_url, top_bottom_data
         print("Email sent successfully")
 
     except Exception as ex:
-        logging.error("Email not sent:\n%s", ex)
+        logging.error("Email not sent: %s", ex)
         print("Email not sent")
 
 
