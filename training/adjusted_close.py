@@ -142,25 +142,24 @@ def check_and_train_model(ticker, hparams, seq_length=60):
     start_date = starttime_dt.strftime("%Y-%m-%d")
     end_date = datetime.now().strftime("%Y-%m-%d")
     
-    # Fetch data
     hist = db_queries.get_ticker_from_db_with_date_select(ticker, start_date, end_date)
-    logger.info(f"Fetched {hist.shape[0]} rows of data for {ticker} from {start_date} to {end_date}.")
-    
     hist = make_dates_timezone_naive(hist)
     hist.reset_index(inplace=True)
     hist['date'] = pd.to_datetime(hist['date'])
-
-    if hist['Adj Close'].isnull().all():
-        logger.error(f"All 'Adj Close' values are missing for {ticker}. Skipping training.")
-        return
+    
+    logger.info(f"Fetched {len(hist)} rows of data for {ticker} from {start_date} to {end_date}.")
 
     scaler = MinMaxScaler()
     hist['Adj Close'] = scaler.fit_transform(hist[['Adj Close']])
     
+    if len(hist) < seq_length:
+        logger.error(f"Not enough data to create sequences for {ticker}.")
+        return
+
     X, y = create_sequences(hist['Adj Close'].values, seq_length)
 
-    if X.shape[0] == 0:
-        logger.error(f"No sequences created for {ticker}. Possible issue with sequence length or data gaps.")
+    if X.shape[0] == 0 or y.shape[0] == 0:
+        logger.error(f"Not enough data to create sequences for {ticker}. Skipping training.")
         return
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
@@ -182,13 +181,14 @@ def check_and_train_model(ticker, hparams, seq_length=60):
             logger.info(f"New data available. Retraining model.")
             hist = hist[hist['date'] > last_trained_date]
             X, y = create_sequences(hist['Adj Close'].values, seq_length)
-            if X.shape[0] > 0:
-                train_new_model(X, y, model_dir, model_path, hparams, sanitized_ticker)
-            else:
+            if X.shape[0] == 0 or y.shape[0] == 0:
                 logger.error(f"Not enough data to retrain model for {ticker}. Skipping retraining.")
+                return
+            train_new_model(X, y, model_dir, model_path, hparams, sanitized_ticker)
     else:
         logger.info(f"No existing model found. Training a new model.")
         train_new_model(X_train, y_train, model_dir, model_path, hparams, sanitized_ticker)
+
 
 def run_training_loop(hparams):
     df: pd.DataFrame = db_queries.fetch_stock_universe_from_db()
