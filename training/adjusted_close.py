@@ -57,9 +57,11 @@ def make_dates_timezone_naive(data):
     data['date'] = pd.to_datetime(data['date']).dt.tz_localize(None)
     return data
 
+
 def sanitize_ticker(ticker):
     sanitized_ticker = re.sub(r'[^A-Za-z0-9.]', '', ticker)
     return sanitized_ticker
+
 
 def calculate_accuracy(y_true, y_pred, tolerance=0.05):
     y_true = np.array(y_true)
@@ -67,15 +69,24 @@ def calculate_accuracy(y_true, y_pred, tolerance=0.05):
     accuracy = np.mean(np.abs((y_true - y_pred) / y_true) <= tolerance)
     return accuracy * 100
 
+
 def train_new_model(X, y, model_dir, model_path, hparams, sanitized_ticker):
     logger.info("Started training for %s", sanitized_ticker)
     print("Started training for %s", sanitized_ticker)
+    
     clear_session()
     os.makedirs(model_dir, exist_ok=True)
+    
+    # Ensure X has the correct shape
+    if len(X.shape) != 3:
+        logger.error(f"Input shape for X is incorrect: {X.shape}. Expected shape is (num_sequences, seq_length, 1)")
+        return
+    
     if os.path.exists(model_path):
         model: Sequential = load_model(model_path)
     else:
         model: Sequential = Sequential()
+        
     model.add(LSTM(units=hparams['HP_LSTM_UNITS'], return_sequences=True, input_shape=(X.shape[1], 1)))
     model.add(Dropout(hparams['HP_DROPOUT']))
     model.add(LSTM(units=hparams['HP_LSTM_UNITS']))
@@ -109,12 +120,14 @@ def train_new_model(X, y, model_dir, model_path, hparams, sanitized_ticker):
     gc.collect()
     clear_session()
 
+
 def load_model_metadata(model_dir):
     metadata_path = os.path.join(model_dir, 'metadata.json')
     if os.path.exists(metadata_path):
         with open(metadata_path, 'r') as f:
             return json.load(f)
     return None
+
 
 def create_sequences(data, seq_length):
     X, y = [], []
@@ -124,10 +137,12 @@ def create_sequences(data, seq_length):
     
     X = np.array(X)
     y = np.array(y)
+    
     if len(X.shape) == 2:
         X = X.reshape((X.shape[0], X.shape[1], 1))
     
     return X, y
+
 
 def check_and_train_model(ticker, hparams, seq_length=60):
     logger.info(f"Checking if training is required for {ticker}")
@@ -168,6 +183,7 @@ def check_and_train_model(ticker, hparams, seq_length=60):
         logger.info(f"No existing model found. Training a new model.")
         train_new_model(X_train, y_train, model_dir, model_path, hparams, sanitized_ticker)
 
+
 def run_training_loop(hparams):
     df: pd.DataFrame = db_queries.fetch_stock_universe_from_db()
 
@@ -182,6 +198,7 @@ def run_training_loop(hparams):
         
     logger.info("Completed a full training check cycle.")
 
+
 def job():
     hparams = {
         'HP_LSTM_UNITS': 400,
@@ -189,6 +206,7 @@ def job():
         'HP_EPOCHS': 200
     }
     run_training_loop(hparams)
+
 
 if __name__ == "__main__":
     job()
