@@ -118,11 +118,6 @@ def load_model_metadata(model_dir):
 
 def create_sequences(data, seq_length):
     X, y = [], []
-    
-    # Ensure there's enough data to create at least one sequence
-    if len(data) < seq_length:
-        return np.array([]), np.array([])  # Return empty arrays if data is insufficient
-    
     for i in range(len(data) - seq_length):
         X.append(data[i:i + seq_length])
         y.append(data[i + seq_length])
@@ -130,10 +125,15 @@ def create_sequences(data, seq_length):
     X = np.array(X)
     y = np.array(y)
     
+    # Debugging: Check if sequences are being created correctly
     if len(X.shape) == 2:
+        logger.warning(f"Data for sequences has only 2 dimensions: {X.shape}. Reshaping to add the third dimension.")
         X = X.reshape((X.shape[0], X.shape[1], 1))
+
+    logger.info(f"Sequences created with shape: X={X.shape}, y={y.shape}")
     
     return X, y
+
 
 def check_and_train_model(ticker, hparams, seq_length=60):
     logger.info(f"Checking if training is required for {ticker}")
@@ -141,18 +141,26 @@ def check_and_train_model(ticker, hparams, seq_length=60):
     starttime_dt = datetime.now() - timedelta(days=4015)
     start_date = starttime_dt.strftime("%Y-%m-%d")
     end_date = datetime.now().strftime("%Y-%m-%d")
+    
+    # Fetch data
     hist = db_queries.get_ticker_from_db_with_date_select(ticker, start_date, end_date)
-    hist.to_csv(os.path.join('data', ticker.replace('.JO', ''), 'history.csv'))
+    logger.info(f"Fetched {hist.shape[0]} rows of data for {ticker} from {start_date} to {end_date}.")
+    
     hist = make_dates_timezone_naive(hist)
     hist.reset_index(inplace=True)
     hist['date'] = pd.to_datetime(hist['date'])
 
+    if hist['Adj Close'].isnull().all():
+        logger.error(f"All 'Adj Close' values are missing for {ticker}. Skipping training.")
+        return
+
     scaler = MinMaxScaler()
     hist['Adj Close'] = scaler.fit_transform(hist[['Adj Close']])
+    
     X, y = create_sequences(hist['Adj Close'].values, seq_length)
 
     if X.shape[0] == 0:
-        logger.error(f"Not enough data to create sequences for {ticker}. Skipping training.")
+        logger.error(f"No sequences created for {ticker}. Possible issue with sequence length or data gaps.")
         return
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
@@ -195,6 +203,7 @@ def run_training_loop(hparams):
         check_and_train_model(row['code'], hparams)
         
     logger.info("Completed a full training check cycle.")
+
 
 def job():
     hparams = {
