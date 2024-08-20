@@ -35,8 +35,21 @@ def make_dates_timezone_naive(date_obj):
         return date_obj.tz_localize(None)
     return date_obj
 
+def record_exists(table_name, date, ticker):
+    # Check if a record with the given date and ticker already exists
+    query = f"SELECT EXISTS(SELECT 1 FROM {table_name} WHERE date = %s AND ticker = %s);"
+    with db_connection.cursor() as cursor:
+        cursor.execute(query, (date, ticker))
+        return cursor.fetchone()[0]
+
 def upload_ticker(ticker, comparison_market, comparison_sector, progress: UploadProgress):
     max_retries = 3
+    problematic_tickers = ['ZAR=X']
+
+    if ticker in problematic_tickers:
+        logging.error(f"Skipping problematic ticker: {ticker}")
+        return
+
     for attempt in range(max_retries):
         try:
             # Fetch the latest date for the ticker from the database
@@ -45,10 +58,10 @@ def upload_ticker(ticker, comparison_market, comparison_sector, progress: Upload
 
             if latest_date:
                 # Convert to pd.Timestamp for consistent comparison
-                check_date = pd.Timestamp(latest_date) + pd.Timedelta(days=1)
-                now = pd.Timestamp.now()
+                check_date = pd.Timestamp(latest_date).tz_localize('Africa/Johannesburg') + pd.Timedelta(days=1)
+                now = pd.Timestamp.now(tz='Africa/Johannesburg')
 
-                if check_date.date() > now.date():
+                if check_date > now:
                     logging.info(f"No new data needed for ticker {ticker} as the latest date is today.")
                     progress.update_ticker_progress(ticker, 100)
                     return
@@ -81,7 +94,10 @@ def upload_ticker(ticker, comparison_market, comparison_sector, progress: Upload
                     'comparison_sector': f'{comparison_sector}.JO',
                     'adj_close': row['Adj Close']
                 }
-                batch.append(row_data)
+
+                # Check if the record already exists
+                if not record_exists('commodities', row_data['date'], ticker):
+                    batch.append(row_data)
 
                 if len(batch) >= 500:  # Increased batch size to reduce the number of inserts
                     insert_stock_data_history_batch(batch)
