@@ -6,7 +6,6 @@ from jinja2 import Environment, FileSystemLoader
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from email.mime.application import MIMEApplication
 import schedule
 import time
 from datetime import datetime, timedelta
@@ -38,6 +37,9 @@ import json
 from assets import upload_history, zar_process, dividends, fetch_daily_commodity_data
 from assets.const import EMAIL_ADDRESS, SERVER_ADDRESS, SERVER_PORT, EMAIL_PASSWORD
 from assets import database_queries as db_queries  # Importing database queries
+from PyPDF2 import PdfReader, PdfWriter
+import boto3
+from botocore.exceptions import NoCredentialsError
 
 # Colorama init
 colorama_init()
@@ -52,6 +54,13 @@ mlp.rcParams['figure.max_open_warning'] = 200  # Increase the limit to 100 or an
 csv_file = 'investment_universe.csv'  # CSV file with your stock data
 graph_dir = 'plots'
 
+# DigitalOcean Spaces credentials
+SPACES_KEY = 'DO00W9U289PF7UNPEPGV'
+SPACES_SECRET = 'aK9NjzisQNh80HGdUbNSb7FkXkV2eg/Lydr68FBRnTA'
+SPACES_REGION = 'nyc3'
+SPACES_BUCKET = 'pretoriusresearch'
+SPACES_URL = f'https://{SPACES_BUCKET}.{SPACES_REGION}.digitaloceanspaces.com'
+
 # Path to wkhtmltopdf executable
 path_wkhtmltopdf = r'/usr/bin/wkhtmltopdf'
 pdfkit_config = pdfkit.configuration(wkhtmltopdf=path_wkhtmltopdf)
@@ -64,7 +73,7 @@ METRIC_ACCURACY = 'accuracy'
 
 # ENABLE DEBUGGING and or Predictions
 DEBUGGING = False
-PREDICTION = False
+PREDICTION = True
 SUMMARY_REPORT = True
 
 DIRECTORIES = ['data', 'logs', 'plots', 'reports', 'models', 'runs', 'data/runs']
@@ -145,6 +154,14 @@ def encode_image(image_path):
         return base64.b64encode(image_file.read()).decode('utf-8')
 
 
+def encode_image_to_base64(image_path):
+    try:
+        with open(image_path, "rb") as image_file:
+            return base64.b64encode(image_file.read()).decode('utf-8')
+    except FileNotFoundError:
+        return None
+
+
 def calculate_moving_averages(data, short_window=24, long_window=55):
     data['MA24'] = data['close'].rolling(window=short_window).mean()
     data['MA55'] = data['close'].rolling(window=long_window).mean()
@@ -179,7 +196,7 @@ def rsi_calculate(data, window=14):
     return rsi
 
 
-def calculate_rsi_close_for_all(data, windows=[14]):
+def calculate_rsi_adjusted_close_for_all(data, windows=[14]):
     for window in windows:
         data[f'RSI_{window}'] = rsi_calculate(data, window)
     return data
@@ -191,7 +208,8 @@ def make_dates_timezone_naive(data):
     return data
 
 
-def plot_price_and_bollinger_bands_close(data, ticker):
+# Plotting
+def plot_price_and_bollinger_bands_adjusted_close(data, ticker):
     data['date'] = pd.to_datetime(data['date'])
     end_date = data['date'].max()
     start_date = end_date - pd.DateOffset(years=2)
@@ -229,7 +247,7 @@ def plot_price_and_bollinger_bands_close(data, ticker):
     plt.close()
 
 
-def plot_overbought_oversold_close(data, ticker, name):
+def plot_overbought_oversold_adjusted_close(data, ticker, name):
     data = make_dates_timezone_naive(data)
     data['date'] = pd.to_datetime(data['date'])
     end_date = data['date'].max()
@@ -306,7 +324,7 @@ def plot_overbought_oversold_zar(data, ticker):
     plt.close()
 
 
-def plot_stock_close_last_two_years(unscaled_close, ticker, next_week_predictions, next_month_predictions, name):
+def plot_stock_adjusted_close_last_two_years(unscaled_close, ticker, next_week_predictions, next_month_predictions, name):
     logger.info(f"Starting to plot stock data for the last year for ticker: {ticker}")
     plt.figure(figsize=(16, 8))
 
@@ -347,29 +365,30 @@ def plot_stock_close_last_two_years(unscaled_close, ticker, next_week_prediction
     except Exception as e:
         logger.error(f"Error generating future dates: {e}")
         return
+    
+    if PREDICTION:
+        # Adjust prediction lengths to match dates
+        if len(next_week_dates) != len(next_week_predictions):
+            logger.warning(f"Length mismatch: next_week_dates ({len(next_week_dates)}) and next_week_predictions ({len(next_week_predictions)})")
+            if len(next_week_dates) > len(next_week_predictions):
+                next_week_dates = next_week_dates[:len(next_week_predictions)]
+            else:
+                next_week_predictions = next_week_predictions[:len(next_week_dates)]
 
-    # Adjust prediction lengths to match dates
-    if len(next_week_dates) != len(next_week_predictions):
-        logger.warning(f"Length mismatch: next_week_dates ({len(next_week_dates)}) and next_week_predictions ({len(next_week_predictions)})")
-        if len(next_week_dates) > len(next_week_predictions):
-            next_week_dates = next_week_dates[:len(next_week_predictions)]
-        else:
-            next_week_predictions = next_week_predictions[:len(next_week_dates)]
+        if len(next_month_dates) != len(next_month_predictions):
+            logger.warning(f"Length mismatch: next_month_dates ({len(next_month_dates)}) and next_month_predictions ({len(next_month_predictions)})")
+            if len(next_month_dates) > len(next_month_predictions):
+                next_month_dates = next_month_dates[:len(next_month_predictions)]
+            else:
+                next_month_predictions = next_month_predictions[:len(next_month_dates)]
 
-    if len(next_month_dates) != len(next_month_predictions):
-        logger.warning(f"Length mismatch: next_month_dates ({len(next_month_dates)}) and next_month_predictions ({len(next_month_predictions)})")
-        if len(next_month_dates) > len(next_month_predictions):
-            next_month_dates = next_month_dates[:len(next_month_predictions)]
-        else:
-            next_month_predictions = next_month_predictions[:len(next_month_dates)]
-
-    try:
-        plt.plot(next_week_dates, next_week_predictions, label='Next Week Predictions', color='cyan')
-        plt.plot(next_month_dates, next_month_predictions, label='Next Month Predictions', color='magenta')
-        logger.info(f"Plotted predictions data")
-    except Exception as e:
-        logger.error(f"Error plotting predictions data: {e}")
-        return
+        try:
+            plt.plot(next_week_dates, next_week_predictions, label='Next Week Predictions', color='cyan')
+            plt.plot(next_month_dates, next_month_predictions, label='Next Month Predictions', color='magenta')
+            logger.info(f"Plotted predictions data")
+        except Exception as e:
+            logger.error(f"Error plotting predictions data: {e}")
+            return
 
     # Date formatting for x-axis
     try:
@@ -382,7 +401,7 @@ def plot_stock_close_last_two_years(unscaled_close, ticker, next_week_prediction
         return
 
     try:
-        plt.title(f'Close Prediction for {name} ({ticker})')
+        plt.title(f'Adjusted Close Prediction for {name} ({ticker})')
         plt.xlabel('date')
         plt.ylabel('Price (R)')
         plt.legend()
@@ -393,7 +412,7 @@ def plot_stock_close_last_two_years(unscaled_close, ticker, next_week_prediction
 
     # Save plot to file
     try:
-        file_path = os.path.join(dir_path, 'close_prediction.png')
+        file_path = os.path.join(dir_path, 'adj_close_prediction.png')
         plt.savefig(file_path)
         plt.close()
         logger.info(f"Plot saved to: {file_path}")
@@ -552,7 +571,8 @@ def plot_volume_data_last_two_years(unscaled_volume, ticker, next_week_volume_pr
         logger.error(f"Error saving volume plot to file: {e}")
 
 
-def process_ticker_close(ticker, commodity, name):
+# Processing data
+def process_ticker_adjusted_close(ticker, commodity, name):
     os.makedirs(os.path.join('data', ticker.replace('.JO', '')), exist_ok=True)
     # Fetching data for the specified period
     starttime_dt = datetime.now() - timedelta(days=1440)
@@ -580,10 +600,10 @@ def process_ticker_close(ticker, commodity, name):
     stock_data = calculate_bollinger_bands(stock_data)
     stock_data.to_csv(os.path.join('data', f'{ticker}', 'Bollinger bands.csv'))
     stock_data = calculate_z_score(stock_data)
-    stock_data = calculate_rsi_close_for_all(stock_data, windows=[14])
+    stock_data = calculate_rsi_adjusted_close_for_all(stock_data, windows=[14])
 
-    plot_price_and_bollinger_bands_close(stock_data, ticker)
-    plot_overbought_oversold_close(stock_data, ticker, name)
+    plot_price_and_bollinger_bands_adjusted_close(stock_data, ticker)
+    plot_overbought_oversold_adjusted_close(stock_data, ticker, name)
 
     return stock_data
 
@@ -611,7 +631,7 @@ def process_zar_bollinger():
     stock_data = calculate_bollinger_bands(stock_data)
     stock_data = calculate_z_score(stock_data)
 
-    plot_price_and_bollinger_bands_close(stock_data, ticker)
+    plot_price_and_bollinger_bands_adjusted_close(stock_data, ticker)
     plot_overbought_oversold_zar(stock_data, ticker)
 
 
@@ -646,7 +666,7 @@ def create_sequences(data, seq_length):
     return X, y
 
 
-def train_new_model(X, y, model_dir, model_path, hparams, sanitized_ticker, scaler=None, focus_last_n=200):
+def train_new_model(X, y, model_dir, model_path, hparams, sanitized_ticker):
     # Create the directory if it does not exist
     os.makedirs(model_dir, exist_ok=True)
     
@@ -688,7 +708,7 @@ def train_new_model(X, y, model_dir, model_path, hparams, sanitized_ticker, scal
         'predictions_within_50_percent': accuracy50
     }
 
-    with open(os.path.join(model_dir, 'close_metadata.json'), 'w') as f:
+    with open(os.path.join(model_dir, 'metadata.json'), 'w') as f:
         json.dump(model_metadata, f)
 
     logger.info(f"Model Performance for {sanitized_ticker}:")
@@ -701,31 +721,27 @@ def train_new_model(X, y, model_dir, model_path, hparams, sanitized_ticker, scal
     logger.info(f"Accuracy within ±30% tolerance: {accuracy30:.2f}%")
     logger.info(f"Accuracy within ±50% tolerance: {accuracy50:.2f}%")
 
-    # Plot model vs actual data
-    debug_plot_path = os.path.join(model_dir, f'{sanitized_ticker}_model_vs_actual.png')
-    plot_model_vs_actual(model, X[:len(X) // 2], y[:len(y) // 2], X[len(X) // 2:], y[len(y) // 2:], debug_plot_path, scaler=scaler, focus_last_n=focus_last_n)
-
     return model
 
 
-def load_model_metadata(model_dir):
-    metadata_path = os.path.join(model_dir, 'close_metadata.json')
+def load_model_metadata(model_dir: str):
+    metadata_path = os.path.join(model_dir, 'metadata.json')
     if os.path.exists(metadata_path):
         with open(metadata_path, 'r') as f:
             return json.load(f)
     return None
 
 
-def save_predictions_to_db(ticker, start_date, next_month_predictions):
+def save_predictions_to_db(ticker: str, start_date, next_month_predictions: list):
     # Generate the dates corresponding to the predictions
     prediction_dates = [start_date + timedelta(days=i) for i in range(1, len(next_month_predictions) + 1)]
 
     # Insert each prediction into the database
-    for date, close in zip(prediction_dates, next_month_predictions):
-        db_queries.insert_prediction(date=date, close=close, code=ticker)
+    for date, adj_close in zip(prediction_dates, next_month_predictions):
+        db_queries.insert_prediction(date=date, adj_close=adj_close, code=ticker)
 
 
-def predict_close_value(hist, hparams, ticker):
+def predict_adjusted_close_value(hist, hparams, ticker):
     logger.info(f"Starting prediction for ticker: {ticker}")
     
     # Clear any previous session
@@ -746,7 +762,7 @@ def predict_close_value(hist, hparams, ticker):
 
     # Model directory
     model_dir = os.path.join('models', sanitized_ticker)
-    model_path = os.path.join(model_dir, f'{sanitized_ticker}_Close_Model.keras')
+    model_path = os.path.join(model_dir, f'{sanitized_ticker}_Adjusted_Close_Model.keras')
     
     # Get the last date in the data
     last_date_in_data = hist['date'].max()
@@ -755,26 +771,13 @@ def predict_close_value(hist, hparams, ticker):
     model_metadata = load_model_metadata(model_dir)
     
     # Check if model exists and if there is new data to train on
-    if os.path.exists(model_path) and model_metadata and model_metadata.get('last_trained_date'):
-        last_trained_date = pd.to_datetime(model_metadata['last_trained_date'])
+    if os.path.exists(model_path):
         
-        if last_date_in_data <= last_trained_date:
-            logger.info(f"No new data since last training on {last_trained_date}. Loading existing model without retraining.")
-            model: SequentialType = load_model(model_path)
-        else:
-            logger.info(f"New data available since last training on {last_trained_date}. Retraining model.")
-            # Subset the historical data for retraining
-            hist = hist[hist['date'] > last_trained_date]
-            X, y = create_sequences(hist['close'].values, seq_length)
-            X = X.reshape((X.shape[0], X.shape[1], 1))
-            model: SequentialType = train_new_model(X_train, y_train, model_dir, model_path, hparams, sanitized_ticker, scaler=scaler)
+        model: SequentialType = load_model(model_path)
+        
     else:
         logger.info(f"No existing model found for ticker: {ticker} or no metadata. Creating and training a new model.")
-        model: SequentialType = train_new_model(X_train, y_train, model_dir, model_path, hparams, sanitized_ticker, scaler=scaler)
-
-    # Plot model vs actual data (for final evaluation on the test set)
-    debug_plot_path = os.path.join(model_dir, f'{sanitized_ticker}_final_model_vs_actual.png')
-    plot_model_vs_actual(model, X_train, y_train, X_test, y_test, debug_plot_path, scaler=scaler, focus_last_n=200)
+        model: SequentialType = train_new_model(X_train, y_train, model_dir, model_path, hparams, sanitized_ticker)
 
     # Make predictions
     last_sequence = hist['close'].values[-seq_length:].reshape((1, seq_length, 1))
@@ -808,9 +811,8 @@ def predict_close_value(hist, hparams, ticker):
     return next_week_prediction, next_month_prediction, next_week_predictions.tolist(), next_month_predictions.tolist()
 
 
-
 # Function to fetch data and run predictions for each ticker
-def fetch_data(hparams):
+def fetch_data(hparams: dict):
     logger.info("Starting data fetch process")
     stocks_df = db_queries.fetch_stock_universe_from_db()
     stock_images = []
@@ -865,7 +867,7 @@ def fetch_data(hparams):
             hist = calculate_moving_averages(hist)
             hist = calculate_bollinger_bands(hist)
             hist = calculate_z_score(hist)
-            hist = calculate_rsi_close_for_all(hist, windows=[14])
+            hist = calculate_rsi_adjusted_close_for_all(hist, windows=[14])
 
             # Convert back to DataFrame if any function accidentally returns a NumPy array
             if isinstance(hist, np.ndarray):
@@ -883,8 +885,10 @@ def fetch_data(hparams):
                 next_month_predictions = next_week_predictions = []
             else:
                 logger.info(f"Generating predictions for {ticker}")
-                next_week_prediction, next_month_prediction, next_week_predictions, next_month_predictions = predict_close_value(hist, hparams, ticker)
+                next_week_prediction, next_month_prediction, next_week_predictions, next_month_predictions = predict_adjusted_close_value(hist, hparams, ticker)
                 logger.info(f"Predictions generated for {ticker}")
+
+            # Add the plot_model_vs_actual function here
 
 
             stocks_df.at[index, 'Current Value'] = round(current_value, 2)
@@ -896,7 +900,7 @@ def fetch_data(hparams):
             logger.info(f"Data updated for {ticker} in DataFrame")
 
             logger.info(f"Generating plots for {ticker}")
-            plot_stock_close_last_two_years(unscaled_close, ticker.replace('.JO', ''), next_week_predictions, next_month_predictions, name)
+            plot_stock_adjusted_close_last_two_years(unscaled_close, ticker.replace('.JO', ''), next_week_predictions, next_month_predictions, name)
             if not row['commodity']:
                 plot_volume_data_last_two_years(unscaled_volume, ticker.replace('.JO', ''))
             logger.info(f"Plots generated for {ticker}")
@@ -905,7 +909,7 @@ def fetch_data(hparams):
                 stock_images.append({
                     'code': ticker.replace('.JO', ''),
                     'name': name,
-                    'adj_prediction': encode_image(process_image(f"{graph_dir}/{ticker.replace('.JO', '')}/close_prediction.png")),
+                    'adj_prediction': encode_image(process_image(f"{graph_dir}/{ticker.replace('.JO', '')}/adj_close_prediction.png")),
                     'volume_prediction': encode_image(process_image(f"{graph_dir}/{ticker.replace('.JO', '')}/volume.png")),
                     'bollinger': encode_image(process_image(f"{graph_dir}/{ticker.replace('.JO', '')}/adj_bollinger.png")),
                     'overbought_oversold': encode_image(process_image(f"{graph_dir}/{ticker.replace('.JO', '')}/adj_overbought_oversold.png"))
@@ -914,7 +918,7 @@ def fetch_data(hparams):
                 stock_images.append({
                     'code': ticker.replace('.JO', ''),
                     'name': name,
-                    'adj_prediction': encode_image(process_image(f"{graph_dir}/{ticker.replace('.JO', '')}/close_prediction.png")),
+                    'adj_prediction': encode_image(process_image(f"{graph_dir}/{ticker.replace('.JO', '')}/adj_close_prediction.png")),
                     'bollinger': encode_image(process_image(f"{graph_dir}/{ticker.replace('.JO', '')}/adj_bollinger.png")),
                     'overbought_oversold': encode_image(process_image(f"{graph_dir}/{ticker.replace('.JO', '')}/adj_overbought_oversold.png"))
                 })
@@ -924,107 +928,21 @@ def fetch_data(hparams):
             logger.error(f"Error processing {ticker}: {e}. Skipping to next ticker.")
             continue
 
-    stocks_df.drop(columns=['Commodity'], inplace=True)
+    #stocks_df.drop(columns=['Commodity'], inplace=True)
     logger.info("Data fetch process completed")
     return stocks_df, stock_images, total_value_next_week, total_value_next_month
 
 
-def create_detailed_pdf(data, stock_images, filename, total_value_next_week, total_value_next_month, summary_report=False):
-    print(Fore.LIGHTGREEN_EX + f"Creating PDF report: {filename}" + Fore.RESET)
-    options = {
-        'page-size': 'Letter',
-        'encoding': "UTF-8"
-    }
-    
-    # Load the appropriate template based on the type of report
-    if summary_report:
-        template = env.get_template('summary_template.html')  # Load summary template
-        # Calculate top 10 and bottom 10 for each metric
-        metrics = ['Next Week Prediction', 'Next Month Prediction', 'Z-Score', 'SECTOR RSI 1M', 'SECTOR RSI 3M', 'SECTOR RSI 6M', 'MARKET RSI 1M', 'MARKET RSI 3M', 'MARKET RSI 6M']
-        top_bottom_data = {}
-
-        for metric in metrics:
-            top_10 = data.nlargest(10, metric)
-            bottom_10 = data.nsmallest(10, metric)
-            top_bottom_data[metric] = {'top': top_10.to_dict(orient='records'), 'bottom': bottom_10.to_dict(orient='records')}
-
-        rendered = template.render(
-            top_bottom_data=top_bottom_data,
-            summary=create_summary(data, total_value_next_week, total_value_next_month),
-            stock_images=stock_images
-        )
-    else:
-        template = env.get_template('detailed_template.html')  # Load detailed template
-        # Detailed report (current implementation)
-        rendered = template.render(
-            stocks=data.to_dict(orient='records'),
-            summary=create_summary(data, total_value_next_week, total_value_next_month),
-            stock_images=stock_images
-        )
-
-    pdfkit.from_string(rendered, filename, options=options, configuration=pdfkit_config)
-
-
-def create_html_summary(data, total_value_next_week, total_value_next_month, template):
-    summary = create_summary(data, total_value_next_week, total_value_next_month)
-    html_content = template.render(stocks=data.to_dict(orient='records'), summary=summary)
-    return html_content
-
-
-def create_summary(data, total_value_next_week, total_value_next_month):
-    try:
-        total_invested = data['Initial Purchase Amount'].sum()
-    except Exception:
-        total_invested = 1
-
-    try:
-        current_value = data['Current Value'].sum()
-    except Exception:
-        current_value = 0
-
-    profit_loss = current_value - total_invested
-    summary = (
-        f"Total Invested: R{total_invested:,.2f}<br>"
-        f"Current Value: R{current_value:,.2f}<br>"
-        f"Profit/Loss: R{profit_loss:,.2f} ({(profit_loss / total_invested) * 100:,.2f}%)<br>"
-        f"Projected Portfolio Value (Next Week): R{total_value_next_week:,.2f}<br>"
-        f"Projected Portfolio Value (Next Month): R{total_value_next_month:,.2f}"
-    )
-    return summary
-
-
-def send_email(subject, body, attachments=None):
-    print(Fore.LIGHTGREEN_EX + "Sending email" + Fore.RESET)
-    message = MIMEMultipart()
-    message['From'] = formataddr(("Stock Bot", EMAIL_ADDRESS))
-    message['To'] = ','.join(
-        [formataddr(("Raine Pretorius", 'raine.pretorius1@gmail.com')),
-         formataddr(("Franco Pretorius", 'francopret@gmail.com'))])
-    message['Subject'] = subject
-    message.attach(MIMEText(body, 'html'))
-    if attachments:
-        for attachment in attachments:
-            with open(attachment, 'rb') as file:
-                part = MIMEApplication(file.read(), Name=os.path.basename(attachment))
-                part['Content-Disposition'] = f'attachment; filename="{os.path.basename(attachment)}"'
-                message.attach(part)
-    with smtplib.SMTP(SERVER_ADDRESS, SERVER_PORT) as server:
-        server.starttls()
-        server.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
-        server.send_message(message)
-    print(Fore.GREEN + "Email sent" + Fore.RESET)
-
-
-def generate_bollinger_and_overbought_oversold_close():
+def generate_bollinger_and_overbought_oversold_adjusted_close():
     os.makedirs(graph_dir, exist_ok=True)
 
     # Load tickers from CSV
-    df: pd.DataFrame = db_queries.fetch_stock_and_commodity_universe_from_db()
+    df: pd.DataFrame = db_queries.fetch_stock_universe_from_db()
     
     threads:list[threading.Thread] = []
     for index, row in df.iterrows():
-        #process_ticker_close(row['code'], row['Commodity'])
-        thread = threading.Thread(target=process_ticker_close, args=(row['code'], row['commodity'], row['share_name']), name=f"Bollinger {row['code']}")
+        #process_ticker_adjusted_close(row['code'], row['Commodity'])
+        thread = threading.Thread(target=process_ticker_adjusted_close, args=(row['code'], row['commodity'], row['share_name']), name=f"Bollinger {row['code']}")
         thread.start()
         time.sleep(1)
         threads.append(thread)
@@ -1045,7 +963,7 @@ def rsi_calculate(data, window=14):
     return rsi
 
 
-def calculate_rsi_close(data, market, sector, ticker):
+def calculate_rsi_adjusted_close(data, market, sector, ticker):
     rsi_1m_sector = 0
     rsi_3m_sector = 0
     rsi_6m_sector = 0
@@ -1158,7 +1076,7 @@ def calculate_rsi_close(data, market, sector, ticker):
 
 
 # Assuming we have historical data for each stock to calculate RSI
-def add_close_rsi_comparisons(df, execute_time):
+def add_adjusted_close_rsi_comparisons(df):
     starttime_dt = datetime.now() - timedelta(weeks=104)
     start_date = starttime_dt.strftime("%Y-%m-%d")
     end_date = datetime.now().strftime("%Y-%m-%d")
@@ -1166,17 +1084,17 @@ def add_close_rsi_comparisons(df, execute_time):
     for index, row in df.iterrows():
         ticker = row['code']
         print(Fore.LIGHTMAGENTA_EX + f"Generating RSI for: {ticker}" + Fore.RESET)
-        comparison_sector = row['RSI Comparison Sector']
-        comparison_market = row['RSI Comparison Market']
+        comparison_sector = row['rsi_comparison_sector']
+        comparison_market = row['rsi_comparison_market']
         # Load historical data for the ticker
         historical_data = yf.download(f"{ticker}", start=start_date, end=end_date, interval='1d')
 
-        comparison_sector_data = yf.download(f"{comparison_sector}.JO", start=start_date, end=end_date, interval='1d')
+        comparison_sector_data = yf.download(f"{comparison_sector}", start=start_date, end=end_date, interval='1d')
 
-        comparison_market_data = yf.download(f"{comparison_market}.JO", start=start_date, end=end_date, interval='1d')
+        comparison_market_data = yf.download(f"{comparison_market}", start=start_date, end=end_date, interval='1d')
 
         # Calculate RSI for the last 1 month, 3 months, and 6 months
-        rsi = calculate_rsi_close(historical_data, comparison_market_data, comparison_sector_data, ticker)
+        rsi = calculate_rsi_adjusted_close(historical_data, comparison_market_data, comparison_sector_data, ticker)
 
         df.at[index, 'SECTOR RSI 1M'] = round(rsi['rsi_1m_sector'], 2)
         df.at[index, 'SECTOR RSI 3M'] = round(rsi['rsi_3m_sector'], 2)
@@ -1188,6 +1106,185 @@ def add_close_rsi_comparisons(df, execute_time):
 
     return df
 
+
+# Reporting
+def upload_to_spaces(file_path, spaces_access_key, spaces_secret_key, bucket_name, region_name, endpoint_url, today):
+    session = boto3.session.Session()
+    client = session.client('s3',
+                            region_name=region_name,
+                            endpoint_url=endpoint_url,
+                            aws_access_key_id=spaces_access_key,
+                            aws_secret_access_key=spaces_secret_key)
+
+    # Create the directory structure
+    file_name = os.path.basename(file_path)
+    remote_path = f"reports/{today}/{file_name}"
+    
+    client.upload_file(file_path, bucket_name, remote_path, ExtraArgs={'ACL': 'public-read'})
+    
+    return f"{endpoint_url}/{bucket_name}/{remote_path}"
+
+
+def prepare_stock_images(top_bottom_data):
+    stock_images = []
+    added_tickers = set()
+
+    for metric in top_bottom_data:
+        for group in ['top_10', 'bottom_10']:
+            for entry in top_bottom_data[metric][group]:
+                ticker = entry['code']
+                if ticker not in added_tickers:
+                    stock_img = {
+                        'name': entry['share_name'],
+                        'ticker': ticker,
+                        'prediction': encode_image_to_base64(f'plots/{ticker.replace(".JO", "")}/adj_close_prediction_compressed.jpg'),
+                        'bollinger': encode_image_to_base64(f'plots/{ticker.replace(".JO", "")}/adj_bollinger_compressed.jpg'),
+                        'overbought_oversold': encode_image_to_base64(f'plots/{ticker.replace(".JO", "")}/adj_overbought_oversold_compressed.jpg')
+                    }
+                    stock_images.append(stock_img)
+                    added_tickers.add(ticker)
+
+    return stock_images
+
+
+def compress_pdf(filename):
+    print(f"Compressing PDF report: {filename}")
+    reader = PdfReader(filename)
+    writer = PdfWriter()
+
+    for page in reader.pages:
+        page.compress_content_streams()  # This is where the compression happens
+        writer.add_page(page)
+
+    compressed_filename = filename.replace('.pdf', '_compressed.pdf')
+    with open(compressed_filename, 'wb') as f:
+        writer.write(f)
+
+    print(f"Compressed PDF report created at: {compressed_filename}")
+
+    return compressed_filename
+
+
+def create_detailed_pdf(data, stock_images, filename, total_value_next_week, total_value_next_month, summary_report=False, today=""):
+    print(f"Creating PDF report: {filename}")
+    options = {
+        'page-size': 'Letter',
+        'encoding': "UTF-8"
+    }
+
+    env = Environment(loader=FileSystemLoader('.'))
+
+    if summary_report:
+        print("Preparing summary report...")
+        data['Z_Score'] = pd.to_numeric(data['Z-Score'], errors='coerce').fillna(0)
+        data['Current Price'] = data['Current Price'].replace(0, pd.NA).fillna(1e-6)
+        data['Next_Week_Prediction_Change'] = ((data['Next Week Prediction'] - data['Current Price']) / data['Current Price']) * 100
+        data['Next_Month_Prediction_Change'] = ((data['Next Month Prediction'] - data['Current Price']) / data['Current Price']) * 100
+
+        metrics = ['Z_Score', 'Next_Week_Prediction_Change', 'Next_Month_Prediction_Change', 'Overbought_Oversold_Value', 'SECTOR RSI 1M', 'SECTOR RSI 3M', 'SECTOR RSI 6M', 'MARKET RSI 1M', 'MARKET RSI 3M', 'MARKET RSI 6M']
+        top_bottom_data = {
+            metric: {
+                'top_10': data.nlargest(10, metric).to_dict(orient='records'),
+                'bottom_10': data.nsmallest(10, metric).to_dict(orient='records')
+            }
+            for metric in metrics
+        }
+
+        # Prepare stock images based on top/bottom data
+        stock_images = prepare_stock_images(top_bottom_data)
+
+        template = env.get_template('summary_template.html')
+        rendered = template.render(
+            top_bottom_data=top_bottom_data,
+            today=today,
+            summary=create_summary(data, total_value_next_week, total_value_next_month),
+            stock_images=stock_images
+        )
+
+    else:
+        template = env.get_template('detailed_template.html')
+        rendered = template.render(
+            stocks=data.to_dict(orient='records'),
+            today=today,
+            summary=create_summary(data, total_value_next_week, total_value_next_month),
+            stock_images=stock_images
+        )
+
+    # Write the HTML to a file for inspection
+    html_file_path = filename.replace('.pdf', '.html')
+    with open(html_file_path, 'w') as file:
+        file.write(rendered)
+
+    # Convert the HTML report to PDF
+    pdfkit.from_file(html_file_path, filename, options=options)
+
+    print(f"PDF report created at: {filename}")
+
+
+def create_html_summary(data, total_value_next_week, total_value_next_month, template):
+    summary = create_summary(data, total_value_next_week, total_value_next_month)
+    html_content = template.render(stocks=data.to_dict(orient='records'), summary=summary)
+    return html_content
+
+
+def create_summary(data, total_value_next_week, total_value_next_month):
+    try:
+        total_invested = data['Initial Purchase Amount'].sum()
+    except Exception:
+        total_invested = 1
+
+    try:
+        current_value = data['Current Value'].sum()
+    except Exception:
+        current_value = 0
+
+    profit_loss = current_value - total_invested
+    summary = (
+        f"Total Invested: R{total_invested:,.2f}<br>"
+        f"Current Value: R{current_value:,.2f}<br>"
+        f"Profit/Loss: R{profit_loss:,.2f} ({(profit_loss / total_invested) * 100:,.2f}%)<br>"
+        f"Projected Portfolio Value (Next Week): R{total_value_next_week:,.2f}<br>"
+        f"Projected Portfolio Value (Next Month): R{total_value_next_month:,.2f}"
+    )
+    return summary
+
+
+def send_email(subject, summary_report_url, detailed_report_url, top_bottom_data):
+    try:
+        # Load the HTML template
+        env = Environment(loader=FileSystemLoader('.'))
+        template = env.get_template('email_template.html')
+
+        # Render the HTML with the passed data
+        html_content = template.render(
+            top_bottom_data=top_bottom_data,
+            summary_report_url=summary_report_url,
+            detailed_report_url=detailed_report_url
+        )
+
+        # Prepare the email message
+        message = MIMEMultipart()
+        message['From'] = formataddr(("Stock Bot", EMAIL_ADDRESS))
+        message['To'] = ','.join(
+            [formataddr(("Raine Pretorius", 'raine.pretorius1@gmail.com')),
+             formataddr(("Franco Pretorius", 'francopret@gmail.com'))]
+        )
+        message['Subject'] = subject
+
+        # Attach the HTML content
+        message.attach(MIMEText(html_content, 'html'))
+
+        # Send the email
+        with smtplib.SMTP(SERVER_ADDRESS, SERVER_PORT) as server:
+            server.starttls()
+            server.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
+            server.send_message(message)
+
+        print("Email sent successfully")
+
+    except Exception as ex:
+        # Properly log the exception with the full message
+        logging.error(f"Email not sent: {ex}")
 
 def daily_job():
     start_time = datetime.now()
@@ -1205,35 +1302,30 @@ def daily_job():
         threads.append(thread)
         print(Fore.GREEN + f"{name} thread started" + Fore.RESET)
 
-    #start_thread(zar_process.process_zar, 'Process ZAR')
-    #start_thread(upload_history.main, 'Upload History')
-    #start_thread(dividends.main, 'Dividend Upload')
-    #start_thread(fetch_daily_commodity_data.main, 'Commodity Upload')
-
     for thread in threads:
         thread.join()
 
-    #process_zar_bollinger()
+    process_zar_bollinger()
 
     for direc in DIRECTORIES:
         os.makedirs(direc, exist_ok=True)
 
-    #generate_bollinger_and_overbought_oversold_close()
+    generate_bollinger_and_overbought_oversold_adjusted_close()
 
     hparams = {
         'HP_LSTM_UNITS': 400,
         'HP_DROPOUT': 0.3,
-        'HP_EPOCHS': 2 if DEBUGGING else 200
+        'HP_EPOCHS': 20 if DEBUGGING else 200
     }
     
     stock_data, stock_images, total_value_next_week, total_value_next_month = fetch_data(hparams)
 
     print(Fore.GREEN + "Data fetched and predictions done." + Fore.RESET)
 
-    stock_data = add_close_rsi_comparisons(stock_data, execute_time.replace(':', ''))
+    stock_data = add_adjusted_close_rsi_comparisons(stock_data)
 
-    stock_data.to_csv(os.path.join('runs', f"{execute_time.replace(':', '')}_close.csv"), index=False)
-    stock_data.to_csv(os.path.join('data', 'runs', f"{execute_time.replace(':', '')}_close.csv"), index=False)
+    stock_data.to_csv(os.path.join('runs', f"{execute_time.replace(':', '')}_adjusted_close.csv"), index=False)
+    stock_data.to_csv(os.path.join('data', 'runs', f"{execute_time.replace(':', '')}_adjusted_close.csv"), index=False)
 
     if not DEBUGGING:
         try:
@@ -1246,36 +1338,64 @@ def daily_job():
     reports_dir = 'reports'
     os.makedirs(reports_dir, exist_ok=True)
 
-    template = env.get_template('detailed_template.html')
-    html_content = create_html_summary(stock_data, total_value_next_week, total_value_next_month, template)
+    template_path = 'email_template.html'
 
     end_time = datetime.now()
     running_time = end_time - start_time
     minutes = round(running_time.seconds / 60, 2)
 
     print(Fore.MAGENTA + f"\nTime Took:\t{minutes} minutes\n" + Fore.RESET)
-
-    try:
-        send_email(f'Daily Stock Report {execute_time}', html_content, [])
-    except Exception:
-        print(Fore.RED + "Email not sent" + Fore.RESET)
-        pass
     
-    os.makedirs(os.path.join(reports_dir, f'{execute_time.replace(':', '')}'), exist_ok=True)
+    os.makedirs(os.path.join(reports_dir, f'{today}'), exist_ok=True)
+    attachment_urls = []
+
     if SUMMARY_REPORT:
-        detailed_pdf_filename = os.path.join(reports_dir, f'{today}', 'summary.pdf')
-        create_detailed_pdf(stock_data, stock_images, detailed_pdf_filename, total_value_next_week, total_value_next_month, summary_report=True)
+        summary_pdf_filename = os.path.join(reports_dir, f'{today}', 'adjusted_close_summary.pdf')
+        create_detailed_pdf(stock_data, stock_images, summary_pdf_filename, total_value_next_week, total_value_next_month, summary_report=True, today=today)
+        summary_url = upload_to_spaces(summary_pdf_filename, SPACES_KEY, SPACES_SECRET, SPACES_BUCKET, SPACES_REGION, SPACES_URL, today)
+        attachment_urls.append(summary_url)
     
-    detailed_pdf_filename = os.path.join(reports_dir, f'{today}', 'detailed.pdf')
-    create_detailed_pdf(stock_data, stock_images, detailed_pdf_filename, total_value_next_week, total_value_next_month, summary_report=False)
+    detailed_pdf_filename = os.path.join(reports_dir, f'{today}', 'adjusted_close_detailed.pdf')
+    create_detailed_pdf(stock_data, stock_images, detailed_pdf_filename, total_value_next_week, total_value_next_month, summary_report=False, today=today)
+    detailed_url = upload_to_spaces(detailed_pdf_filename, SPACES_KEY, SPACES_SECRET, SPACES_BUCKET, SPACES_REGION, SPACES_URL, today)
+    attachment_urls.append(detailed_url)
     
-    print(Fore.GREEN + "PDF created" + Fore.RESET)
+    print(Fore.GREEN + "PDF created and uploaded" + Fore.RESET)
 
+    # Prepare the data for the email template
+    top_bottom_data = {
+        'Z_Score': {
+            'top_10': stock_data.nlargest(10, 'Z-Score').to_dict(orient='records'),
+            'bottom_10': stock_data.nsmallest(10, 'Z-Score').to_dict(orient='records')
+        },
+        'Next_Week_Prediction_Change': {
+            'top_10': stock_data.nlargest(10, 'Next_Week_Prediction_Change').to_dict(orient='records'),
+            'bottom_10': stock_data.nsmallest(10, 'Next_Week_Prediction_Change').to_dict(orient='records')
+        },
+        'Next_Month_Prediction_Change': {
+            'top_10': stock_data.nlargest(10, 'Next_Month_Prediction_Change').to_dict(orient='records'),
+            'bottom_10': stock_data.nsmallest(10, 'Next_Month_Prediction_Change').to_dict(orient='records')
+        },
+        'Overbought_Oversold_Value': {
+            'top_10': stock_data.nlargest(10, 'Overbought_Oversold_Value').to_dict(orient='records'),
+            'bottom_10': stock_data.nsmallest(10, 'Overbought_Oversold_Value').to_dict(orient='records')
+        }
+        # Add more metrics as needed
+    }
+
+    # Send the email with the report links
+    send_email(
+        subject=f'Daily Stock Report {today}',
+        summary_report_url=summary_url,
+        detailed_report_url=detailed_url,
+        top_bottom_data=top_bottom_data
+    )
+    
     print("Job completed" + Fore.RESET)
-
+ 
 
 def setup_scheduler():
-    schedule.every().day.at("00:10").do(daily_job)
+    schedule.every().day.at("06:30").do(daily_job)
     while True:
         schedule.run_pending()
         time.sleep(15)
@@ -1284,3 +1404,4 @@ def setup_scheduler():
 if __name__ == '__main__':
     daily_job()
     setup_scheduler()
+  

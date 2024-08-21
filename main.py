@@ -1,5 +1,5 @@
 from adjusted_close_testing import daily_job as adj_close_main
-from close_prediction_testing import daily_job as close_main
+from close_testing import daily_job as close_main
 import threading
 import schedule
 import time
