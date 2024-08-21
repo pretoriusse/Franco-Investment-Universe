@@ -15,7 +15,7 @@ def main():
     close_thread.join()
 
 def setup_scheduler():
-    schedule.every().day.at("00:10").do(main)
+    schedule.every().day.at("06:10").do(main)
     while True:
         schedule.run_pending()
         time.sleep(15)
