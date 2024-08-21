@@ -56,7 +56,10 @@ def upload_ticker(ticker, comparison_market, comparison_sector, progress: Upload
                 start_date = check_date.strftime('%Y-%m-%d')
                 df: pd.DataFrame = yf.download(ticker, start=start_date, interval='1d')
             else:
-                df: pd.DataFrame = yf.download(ticker, interval='1d', period='max')
+                try:
+                    df: pd.DataFrame = yf.download(ticker, interval='1d', period='max')
+                except Exception as ex:
+                    logging.error('Error downloading data from Yahoo Finance for ticker: %s\n%s.', (ticker, ex))
 
             if df.empty:
                 logging.error(f"No data found for ticker {ticker}. It may be delisted or not available.")
