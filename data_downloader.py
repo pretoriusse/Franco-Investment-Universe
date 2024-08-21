@@ -13,10 +13,10 @@ def main():
         threads.append(thread)
         print(f"{name} thread started")
 
-    start_thread(zar_process.process_zar, 'Process ZAR')
+    #start_thread(zar_process.process_zar, 'Process ZAR')
     start_thread(upload_history.main, 'Upload History')
     start_thread(dividends.main, 'Dividend Upload')
-    start_thread(fetch_daily_commodity_data.main, 'Commodity Upload')
+    #start_thread(fetch_daily_commodity_data.main, 'Commodity Upload')
 
     for thread in threads:
         thread.join()
