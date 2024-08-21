@@ -6,6 +6,7 @@ import datetime
 import logging
 from assets.database_queries import fetch_stock_universe_from_db, fetch_latest_date_for_ticker, insert_stock_data_history_batch
 import yfinance as yf
+from yfinance.exceptions import YFPricesMissingError
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -58,8 +59,9 @@ def upload_ticker(ticker, comparison_market, comparison_sector, progress: Upload
             else:
                 try:
                     df: pd.DataFrame = yf.download(ticker, interval='1d', period='max')
-                except Exception as ex:
-                    logging.error('Error downloading data from Yahoo Finance for ticker: %s\n%s.', (ticker, ex))
+                except YFPricesMissingError as ex:
+                    logging.info(f"No new data needed for ticker {ticker} as the latest date is today.")
+                    progress.update_ticker_progress(ticker, 100)
 
             if df.empty:
                 logging.error(f"No data found for ticker {ticker}. It may be delisted or not available.")

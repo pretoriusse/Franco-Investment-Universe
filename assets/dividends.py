@@ -5,7 +5,7 @@ import time
 from tqdm import tqdm
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
-from assets.database_queries import fetch_latest_dividend_date, insert_dividends_batch
+from assets.database_queries import fetch_latest_dividend_date, insert_dividends_batch, fetch_stock_universe_from_db()
 
 class UploadProgress:
     def __init__(self, total):
@@ -58,10 +58,10 @@ def upload_dividends(ticker, progress: UploadProgress, max_retries=5, delay=2):
             time.sleep(delay * attempt)  # Exponential backoff
 
     if attempt == max_retries:
-        print(f"Failed to process ticker {ticker} after {max_retries} attempts.")
+        print(f"Failed to process dividend for ticker {ticker} after {max_retries} attempts.")
 
 def main():
-    stock_universe = pd.read_csv('investment universe.csv')
+    stock_universe = db_queries.
     progress = UploadProgress(stock_universe.shape[0])
 
     with ThreadPoolExecutor(max_workers=5) as executor:  # Reduce max_workers to limit the number of simultaneous requests
