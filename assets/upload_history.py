@@ -53,12 +53,17 @@ def upload_ticker(ticker, comparison_market, comparison_sector, progress: Upload
                     logging.info(f"No new data needed for ticker {ticker} as the latest date is today.")
                     progress.update_ticker_progress(ticker, 100)
                     return
-
-                start_date = check_date.strftime('%Y-%m-%d')
-                df: pd.DataFrame = yf.download(ticker, start=start_date, interval='1d')
+                try:
+                    start_date = check_date.strftime('%Y-%m-%d')
+                    df: pd.DataFrame = yf.download(ticker, start=start_date, interval='1d')
+                    
+                except YFPricesMissingError as ex:
+                    logging.info(f"No new data needed for ticker {ticker} as the latest date is today.")
+                    progress.update_ticker_progress(ticker, 100)
             else:
                 try:
                     df: pd.DataFrame = yf.download(ticker, interval='1d', period='max')
+                
                 except YFPricesMissingError as ex:
                     logging.info(f"No new data needed for ticker {ticker} as the latest date is today.")
                     progress.update_ticker_progress(ticker, 100)
@@ -122,7 +127,7 @@ def main():
             if row['commodity']:
                 continue
             futures.append(executor.submit(upload_ticker, row['code'], row['rsi_comparison_market'], row['rsi_comparison_sector'], progress))
-            time.sleep(2)  # Reduce delay to maximize throughput
+            time.sleep(1)  # Reduce delay to maximize throughput
 
         for future in futures:
             future.result()
