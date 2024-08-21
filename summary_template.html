@@ -63,14 +63,16 @@
         <h3>Top 10</h3>
         <table>
             <tr>
-                <th>Ticker</th>
+                <th>Share Code</th>
                 <th>Name</th>
+                <th>Current Price</th>
                 <th>{{ metric.replace('_', ' ') }}</th>
             </tr>
             {% for stock in data.top_10 %}
             <tr>
                 <td><a href="https://finance.yahoo.com/quote/{{ stock['code'] }}/">{{ stock['code'] }}</a></td>
                 <td>{{ stock['share_name'] }}</td>
+                <td>{{ stock['Current Price'] }}</td>
                 <td>{{ stock[metric] }}</td>
             </tr>
             {% endfor %}
@@ -79,14 +81,16 @@
         <h3>Bottom 10</h3>
         <table>
             <tr>
-                <th>Ticker</th>
+                <th>Share Code</th>
                 <th>Name</th>
+                <th>Current Price</th>
                 <th>{{ metric.replace('_', ' ') }}</th>
             </tr>
             {% for stock in data.bottom_10 %}
             <tr>
                 <td><a href="https://finance.yahoo.com/quote/{{ stock['code'] }}/">{{ stock['code'] }}</a></td>
                 <td>{{ stock['share_name'] }}</td>
+                <td>{{ stock['Current Price'] }}</td>
                 <td>{{ stock[metric] }}</td>
             </tr>
             {% endfor %}
@@ -96,7 +100,7 @@
         <div class="image-container">
             <h3>{{ stockimg.name }}</h3>
             {% if stockimg.prediction %}
-                <img src="data:image/png;base64,{{ stockimg.prediction }}" alt="{{ stockimg.ticker }} Prediction">
+                <img src="data:image/png;base64,{{ stockimg.prediction }}" alt="{{ stockimg.ticker }} Close Prediction">
             {% endif %}
             {% if stockimg.adj_prediction %}
                 <img src="data:image/png;base64,{{ stockimg.adj_prediction }}" alt="{{ stockimg.ticker }} Adjusted Close Prediction">

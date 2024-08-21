@@ -5,7 +5,7 @@ DB_PARAMS = {
     'dbname': 'sharesdata',
     'user': 'postgres',
     'password': 'Pr3t0r1u5',
-    'host': '192.168.50.138',
+    'host': '192.168.0.181',
     'port': '5432'
 }
 

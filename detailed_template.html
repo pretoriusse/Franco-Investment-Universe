@@ -45,12 +45,6 @@
         .negative {
             color: red;
         }
-        .rsi-positive {
-
-        }
-        .rsi-negative {
-            
-        }
         .image-container {
             text-align: center;
             margin: 20px 0;
@@ -79,16 +73,12 @@
             <tr>
                 <th>Stock Code</th>
                 <th>Name</th>
-                <th>Industry</th>
-                <th>Sub-Industry</th>
                 <th>Current Price (R)</th>
             </tr>
             {% for stock in stocks %}
             <tr>
                 <td><a href="https://finance.yahoo.com/quote/{{ stock['code'] }}/">{{ stock['code'] }}</a></td>
                 <td>{{ stock['share_name'] }}</td>
-                <td>{{ stock['industry'] }}</td>
-                <td>{{ stock['sub_industry'] }}</td>
                 <td>{{ stock['Current Price'] }}</td>
             </tr>
             {% endfor %}
@@ -96,9 +86,9 @@
         <h2>Technical Information</h2>
         <table>
             <tr>
-                <th>Ticker</th>
+                <th>Stock Code</th>
                 <th>Name</th>
-                <th>Industry</th>
+                <th>Current Price</th>
                 <th>Next Week Prediction (%)</th>
                 <th>Next Month Prediction (%)</th>
                 <th>Z-Score</th>
@@ -108,7 +98,7 @@
             <tr>
                 <td><a href="https://finance.yahoo.com/quote/{{ stock['code'] }}/">{{ stock['code'] }}</a></td>
                 <td>{{ stock['share_name'] }}</td>
-                <td>{{ stock['industry'] }}</td>
+                <td>{{ stock['Current Price'] }}</td>
                 <td class="{{ 'positive' if stock['Next Week Prediction'] >= 0 else 'negative' }}">{{ stock['Next Week Prediction']}}</td>
                 <td class="{{ 'positive' if stock['Next Month Prediction'] >= 0 else 'negative' }}">{{ stock['Next Month Prediction'] }}</td>
                 <td>{{ stock['Z-Score'] }}</td>
@@ -119,9 +109,9 @@
         <h2>RSI</h2>
         <table>
             <tr>
-                <th>Ticker</th>
+                <th>Share Code</th>
                 <th>Name</th>
-                <th>Industry</th>
+                <th>Current Price</th>
                 <th>Sector RSI 1m</th>
                 <th>Sector RSI 3m</th>
                 <th>Sector RSI 6m</th>
@@ -133,7 +123,7 @@
             <tr>
                 <td><a href="https://finance.yahoo.com/quote/{{ stock['code'] }}/">{{ stock['code'] }}</a></td>
                 <td>{{ stock['share_name'] }}</td>
-                <td>{{ stock['industry'] }}</td>
+                <td>{{ stock['Current Price'] }}</td>
                 <td class="{{ 'rsi-positive' if stock['SECTOR RSI 1M'] >= 1 else 'rsi-negative' }}">{{ stock['SECTOR RSI 1M'] }}</td>
                 <td class="{{ 'rsi-positive' if stock['SECTOR RSI 3M'] >= 1 else 'rsi-negative' }}">{{ stock['SECTOR RSI 3M'] }}</td>
                 <td class="{{ 'rsi-positive' if stock['SECTOR RSI 6M'] >= 1 else 'rsi-negative' }}">{{ stock['SECTOR RSI 6M'] }}</td>
