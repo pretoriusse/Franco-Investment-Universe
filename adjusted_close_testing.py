@@ -1363,6 +1363,7 @@ def daily_job():
     print(Fore.GREEN + "PDF created and uploaded" + Fore.RESET)
 
     # Prepare the data for the email template
+    # Prepare the data for the email template
     top_bottom_data = {
         'Z_Score': {
             'top_10': stock_data.nlargest(10, 'Z-Score').to_dict(orient='records'),
