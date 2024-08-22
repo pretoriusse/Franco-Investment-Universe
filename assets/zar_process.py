@@ -12,7 +12,6 @@ from assets.database_queries import (
     close_session,
     fetch_all_zar_usd
 )
-from assets.models import ZARUSD
 
 # Setup logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
