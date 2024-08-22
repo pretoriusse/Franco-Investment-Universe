@@ -1368,20 +1368,32 @@ def daily_job():
             'top_10': stock_data.nlargest(10, 'Z-Score').to_dict(orient='records'),
             'bottom_10': stock_data.nsmallest(10, 'Z-Score').to_dict(orient='records')
         },
-        'Next_Week_Prediction_Change': {
-            'top_10': stock_data.nlargest(10, 'Next_Week_Prediction_Change').to_dict(orient='records'),
-            'bottom_10': stock_data.nsmallest(10, 'Next_Week_Prediction_Change').to_dict(orient='records')
+        'Next_Week_Prediction': {
+            'top_10': stock_data.nlargest(10, 'Next Week Prediction').to_dict(orient='records'),
+            'bottom_10': stock_data.nsmallest(10, 'Next Week Prediction').to_dict(orient='records')
         },
-        'Next_Month_Prediction_Change': {
-            'top_10': stock_data.nlargest(10, 'Next_Month_Prediction_Change').to_dict(orient='records'),
-            'bottom_10': stock_data.nsmallest(10, 'Next_Month_Prediction_Change').to_dict(orient='records')
+        'Next_Month_Prediction': {
+            'top_10': stock_data.nlargest(10, 'Next Month Prediction').to_dict(orient='records'),
+            'bottom_10': stock_data.nsmallest(10, 'Next Month Prediction').to_dict(orient='records')
         },
         'Overbought_Oversold_Value': {
             'top_10': stock_data.nlargest(10, 'Overbought_Oversold_Value').to_dict(orient='records'),
             'bottom_10': stock_data.nsmallest(10, 'Overbought_Oversold_Value').to_dict(orient='records')
+        },
+        'RSI_1M': {
+            'top_10': stock_data.nlargest(10, 'SECTOR RSI 1M').to_dict(orient='records'),
+            'bottom_10': stock_data.nsmallest(10, 'SECTOR RSI 1M').to_dict(orient='records')
+        },
+        'RSI_3M': {
+            'top_10': stock_data.nlargest(10, 'SECTOR RSI 3M').to_dict(orient='records'),
+            'bottom_10': stock_data.nsmallest(10, 'SECTOR RSI 3M').to_dict(orient='records')
+        },
+        'RSI_6M': {
+            'top_10': stock_data.nlargest(10, 'SECTOR RSI 6M').to_dict(orient='records'),
+            'bottom_10': stock_data.nsmallest(10, 'SECTOR RSI 6M').to_dict(orient='records')
         }
-        # Add more metrics as needed
     }
+
 
     # Send the email with the report links
     send_email(
