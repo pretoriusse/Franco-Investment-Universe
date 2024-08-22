@@ -1311,7 +1311,7 @@ def daily_job():
     for direc in DIRECTORIES:
         os.makedirs(direc, exist_ok=True)
 
-    generate_bollinger_and_overbought_oversold_adjusted_close()
+    #generate_bollinger_and_overbought_oversold_adjusted_close()
 
     hparams = {
         'HP_LSTM_UNITS': 400,
