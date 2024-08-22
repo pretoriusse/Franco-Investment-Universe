@@ -1368,11 +1368,11 @@ def daily_job():
             'top_10': stock_data.nlargest(10, 'Z-Score').to_dict(orient='records'),
             'bottom_10': stock_data.nsmallest(10, 'Z-Score').to_dict(orient='records')
         },
-        'Next_Week_Prediction': {
+        'Next_Week_Prediction_Change': {
             'top_10': stock_data.nlargest(10, 'Next Week Prediction').to_dict(orient='records'),
             'bottom_10': stock_data.nsmallest(10, 'Next Week Prediction').to_dict(orient='records')
         },
-        'Next_Month_Prediction': {
+        'Next_Month_Prediction_Change': {
             'top_10': stock_data.nlargest(10, 'Next Month Prediction').to_dict(orient='records'),
             'bottom_10': stock_data.nsmallest(10, 'Next Month Prediction').to_dict(orient='records')
         },
@@ -1381,17 +1381,18 @@ def daily_job():
             'bottom_10': stock_data.nsmallest(10, 'Overbought_Oversold_Value').to_dict(orient='records')
         },
         'RSI_1M': {
-            'top_10': stock_data.nlargest(10, 'SECTOR RSI 1M').to_dict(orient='records'),
-            'bottom_10': stock_data.nsmallest(10, 'SECTOR RSI 1M').to_dict(orient='records')
+            'top_10': stock_data.nlargest(10, 'RSI 1M').to_dict(orient='records'),
+            'bottom_10': stock_data.nsmallest(10, 'RSI 1M').to_dict(orient='records')
         },
         'RSI_3M': {
-            'top_10': stock_data.nlargest(10, 'SECTOR RSI 3M').to_dict(orient='records'),
-            'bottom_10': stock_data.nsmallest(10, 'SECTOR RSI 3M').to_dict(orient='records')
+            'top_10': stock_data.nlargest(10, 'RSI 3M').to_dict(orient='records'),
+            'bottom_10': stock_data.nsmallest(10, 'RSI 3M').to_dict(orient='records')
         },
         'RSI_6M': {
-            'top_10': stock_data.nlargest(10, 'SECTOR RSI 6M').to_dict(orient='records'),
-            'bottom_10': stock_data.nsmallest(10, 'SECTOR RSI 6M').to_dict(orient='records')
+            'top_10': stock_data.nlargest(10, 'RSI 6M').to_dict(orient='records'),
+            'bottom_10': stock_data.nsmallest(10, 'RSI 6M').to_dict(orient='records')
         }
+        # Add more metrics as needed
     }
 
 
