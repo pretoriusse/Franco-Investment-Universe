@@ -1,0 +1,175 @@
+code,share_name,industry,sub_industry,rsi_comparison_market,rsi_comparison_sector,commodity,Current Price,Current Value,Next Week Prediction,Next Month Prediction,Z-Score,Overbought_Oversold,Overbought_Oversold_Value,SECTOR RSI 1M,SECTOR RSI 3M,SECTOR RSI 6M,MARKET RSI 1M,MARKET RSI 3M,MARKET RSI 6M
+4SI.JO,4Sight Holdings Ltd,Technology,Software and Computer Services,%5EJ300.JO,STXFIN.JO,False,70.0,70.0,-0.79,-0.89,-1.23,0.0,1.0,0.82,0.76,0.77,0.84,0.84,0.97
+ABG.JO,Absa Group Limited,Financials,Banks,%5EJ300.JO,STXFIN.JO,False,16803.0,16803.0,-0.0,0.32,2.46,-0.01,0.99,0.97,0.94,0.89,1.0,1.03,1.1
+ACT.JO,AfroCentric Inv Corp Ltd,Healthcare,Healthcare Providers,%5EJ300.JO,STXFIN.JO,False,266.0,266.0,-0.81,-0.79,-1.29,-0.0,1.0,0.97,0.88,0.85,0.99,0.97,1.05
+ADH.JO,ADvTECH Ltd,Consumer Discrescretionary,Consumer Services,%5EJ300.JO,STXFIN.JO,False,3150.0,3150.0,0.0,0.02,2.11,0.0,1.0,0.99,1.01,1.02,1.02,1.12,1.22
+ADR.JO,Adcorp Holdings Limited,Industrials,General Industrials,%5EJ300.JO,STXFIN.JO,False,481.0,481.0,-0.83,-0.89,0.73,0.04,1.04,1.02,0.98,1.11,1.05,1.08,1.32
+ADW.JO,African Dawn Capital Ltd,Financials,Finance and Credit Services,%5EJ300.JO,STXFIN.JO,False,0.09,0.09,-1.0,-1.0,,-0.85,0.15,0.01,0.01,0.01,0.01,0.01,0.18
+AEG.JO,Aveng Group Limited,Industrials,Construction Materials,%5EJ300.JO,STXFIN.JO,False,937.0,937.0,-1.02,-1.44,0.85,0.08,1.08,1.09,1.4,1.16,1.12,1.54,1.37
+AEL.JO,Altron Limited,Technology,Software and Computer Services,%5EJ300.JO,STXFIN.JO,False,1754.0,1754.0,-0.49,-0.8,1.51,0.05,1.05,1.0,1.15,1.5,1.02,1.27,1.72
+AFE.JO,AECI Limited,Basic Materials,Chemicals,%5EJ300.JO,STXFIN.JO,False,10727.0,10727.0,-0.13,-0.22,1.63,-0.01,0.99,1.05,0.93,0.98,1.07,1.03,1.18
+AFH.JO,Alexander Forbes Grp Hldgs,Financials,Investment Banking and Brokerage Services,%5EJ300.JO,STXFIN.JO,False,675.0,675.0,-0.1,-0.21,0.68,-0.0,1.0,0.93,0.95,0.94,0.96,1.04,1.14
+AFT.JO,Afrimat Limited,Basic Materials,Industrial Metals and Mining,%5EJ300.JO,STXRES.JO,False,6427.0,6427.0,-0.2,-0.27,-0.2,-0.05,0.95,0.94,0.98,0.91,0.9,0.89,1.14
+AGL.JO,Anglo American plc,Basic Materials,Industrial Metals and Mining,%5EJ300.JO,STXRES.JO,False,53529.0,53529.0,-0.33,-0.38,2.22,-0.03,0.97,1.01,0.9,1.04,0.97,0.82,1.27
+AHL.JO,AH-Vest Limited,Consumer Staples,Food Producers,%5EJ300.JO,STXFIN.JO,False,0.1,0.1,-0.86,-0.49,,-0.85,0.15,0.01,0.53,0.01,0.01,0.59,0.18
+AIL.JO,African Rainbow Cap Inv,Financials,Closed end Investments,%5EJ300.JO,STXFIN.JO,False,614.0,614.0,-0.39,-0.51,-0.86,-0.0,1.0,0.89,0.98,1.06,0.91,1.08,1.27
+AIP.JO,Adcock Ingram Hldgs Ltd,Healthcare,Pharmaceuticals and Biotechnology,%5EJ300.JO,STXFIN.JO,False,6000.0,6000.0,0.04,0.46,3.15,-0.02,0.98,0.96,0.95,0.95,0.98,1.04,1.15
+AME.JO,African Media Ent Ltd,Consumer Discrescretionary,Media,%5EJ300.JO,STXFIN.JO,False,4100.0,4100.0,-0.3,-0.25,-0.7,0.04,1.04,0.94,1.05,1.1,0.97,1.16,1.31
+AMS.JO,Anglo American Plat Ltd,Basic Materials,Precious Metals and Mining,%5EJ300.JO,STXRES.JO,False,69368.0,69368.0,-0.74,-0.84,1.89,0.01,1.01,1.04,1.02,0.8,1.0,0.93,1.02
+ANG.JO,AngloGold Ashanti plc,Basic Materials,Precious Metals and Mining,%5EJ300.JO,STXRES.JO,False,56185.0,56185.0,-0.12,-0.35,1.25,0.03,1.03,1.09,1.29,1.3,1.05,1.17,1.55
+ANH.JO,Anheuser-Busch InBev SA NV,Consumer Staples,Beverages,%5EJ300.JO,STXACW.JO,False,108974.0,108974.0,-0.68,-0.78,-0.76,0.0,1.0,0.97,0.91,0.88,0.94,0.86,0.96
+APN.JO,Aspen Pharmacare Hldgs Ltd,Healthcare,Pharmaceuticals and Biotechnology,%5EJ300.JO,STXFIN.JO,False,23426.0,23426.0,-0.44,-0.22,0.32,0.0,1.0,0.92,0.88,1.02,0.94,0.97,1.22
+ARA.JO,Astoria Investments Ltd,Financials,Closed end Investments,%5EJ300.JO,STXFIN.JO,False,800.0,800.0,-0.88,-0.98,0.97,0.02,1.02,0.99,0.97,0.78,1.02,1.06,0.98
+ARI.JO,African Rainbow Min Ltd,Basic Materials,Industrial Metals and Mining,%5EJ300.JO,STXRES.JO,False,19243.0,19243.0,-0.18,0.21,-0.52,-0.07,0.93,0.88,0.86,0.95,0.85,0.78,1.18
+ARL.JO,Astral Foods Ltd,Consumer Staples,Food Producers,%5EJ300.JO,STXFIN.JO,False,17300.0,17300.0,-0.34,-0.38,1.64,0.01,1.01,0.95,0.97,0.96,0.98,1.07,1.17
+ART.JO,Argent Industrial Ltd,Industrials,Industrial Support Services,%5EJ300.JO,STXFIN.JO,False,2700.0,2700.0,-0.09,-0.2,2.46,0.04,1.04,1.07,1.09,1.25,1.1,1.21,1.46
+ASC.JO,Ascendis Health Ltd,Healthcare,Pharmaceuticals and Biotechnology,%5EJ300.JO,STXFIN.JO,False,70.0,70.0,-0.93,-0.9,-0.27,-0.04,0.96,0.91,0.76,,0.93,0.84,
+AVI.JO,AVI Ltd,Consumer Staples,Food Producers,%5EJ300.JO,STXFIN.JO,False,9931.0,9931.0,0.04,0.33,1.15,0.01,1.01,0.96,0.96,0.97,0.99,1.06,1.17
+AYO.JO,Ayo Tech Solutions Ltd,Technology,Software and Computer Services,%5EJ300.JO,STXFIN.JO,False,54.0,54.0,-0.99,-0.99,0.14,-0.12,0.88,0.79,0.92,0.81,0.81,1.01,1.01
+BAT.JO,Brait plc,Financials,Investment Banking and Brokerage Services,%5EJ300.JO,STXFIN.JO,False,96.0,96.0,-0.97,-0.89,2.41,-0.05,0.95,1.09,0.68,0.43,1.12,0.75,0.62
+BAW.JO,Barloworld Ltd,Industrials,General Industrials,%5EJ300.JO,STXFIN.JO,False,9416.0,9416.0,-0.32,-0.61,0.85,0.02,1.02,0.98,0.92,1.18,1.01,1.01,1.39
+BCF.JO,Bowler Metcalf Ltd,Industrials,General Industrials,%5EJ300.JO,STXFIN.JO,False,1340.0,1340.0,-0.28,0.6,-0.44,0.17,1.17,1.1,1.04,1.08,1.13,1.15,1.29
+BHG.JO,BHP Group Limited,Basic Materials,Industrial Metals and Mining,%5EJ300.JO,STXRES.JO,False,49103.0,49103.0,-0.53,-0.59,1.0,-0.04,0.96,0.98,0.92,0.74,0.94,0.83,0.96
+BID.JO,BID Corporation Ltd,Consumer Staples,"Personal Care, Drug and Grocery Stores",%5EJ300.JO,STXFIN.JO,False,43234.0,43234.0,-0.16,-0.23,0.08,0.01,1.01,0.91,0.88,0.82,0.93,0.97,1.01
+BIK.JO,Brikor Ltd,Industrials,Construction Materials,%5EJ300.JO,STXFIN.JO,False,14.0,14.0,-0.23,-0.24,-0.64,0.02,1.02,0.93,0.79,0.69,0.96,0.88,0.89
+BLU.JO,Blue Label Telecoms Ltd,Telecommunications,Telecommunication Service Providers,%5EJ300.JO,STXFIN.JO,False,498.0,498.0,-0.86,-1.02,4.1,0.02,1.02,1.09,1.01,1.24,1.12,1.11,1.46
+BTI.JO,British American Tob plc,Consumer Staples,Tobacco,%5EJ300.JO,STXACW.JO,False,64596.0,64596.0,-0.16,-0.37,-0.42,0.05,1.05,1.06,1.18,1.15,1.02,1.11,1.2
+BVT.JO,Bidvest Ltd,Industrials,General Industrials,%5EJ300.JO,STXFIN.JO,False,28455.0,28455.0,0.01,0.1,1.64,-0.02,0.98,0.97,0.93,1.04,1.0,1.03,1.25
+BYI.JO,Bytes Technology Grp plc,Technology,Software and Computer Services,%5EJ300.JO,STXFIN.JO,False,11235.0,11235.0,-0.47,-0.44,1.1,-0.04,0.96,0.9,0.7,0.75,0.93,0.77,0.95
+CAT.JO,Caxton CTP Publish Print,Consumer Discrescretionary,Media,%5EJ300.JO,STXFIN.JO,False,1030.0,1030.0,-0.4,-0.37,0.09,0.01,1.01,0.96,0.86,0.86,0.98,0.95,1.06
+CFR.JO,Compagnie Fin Richemont,Consumer Discrescretionary,Personal Goods,%5EJ300.JO,STXACW.JO,False,283667.0,283667.0,-0.44,-0.5,2.43,-0.02,0.98,1.03,0.97,0.93,0.99,0.92,1.0
+CKS.JO,Crookes Brothers Ltd,Consumer Staples,Food Producers,%5EJ300.JO,STXFIN.JO,False,3151.0,3151.0,-0.54,-0.49,-0.66,0.04,1.04,0.89,0.89,0.94,0.91,0.99,1.15
+CLH.JO,City Lodge Hotels Ltd,Consumer Discrescretionary,Travel and Leisure,%5EJ300.JO,STXFIN.JO,False,435.0,435.0,-0.93,-0.93,0.95,-0.01,0.99,0.92,0.9,0.86,0.94,0.99,1.06
+CLI.JO,Clientele Ltd,Financials,Life Insurance,%5EJ300.JO,STXFIN.JO,False,1209.0,1209.0,-0.22,-0.29,2.38,0.02,1.02,1.03,1.02,0.84,1.06,1.12,1.04
+CLS.JO,Clicks Group Ltd,Consumer Staples,"Personal Care, Drug and Grocery Stores",%5EJ300.JO,STXFIN.JO,False,35937.0,35937.0,-0.03,-0.11,2.16,0.02,1.02,0.99,1.01,1.02,1.01,1.11,1.22
+CMH.JO,Combined Motor Hldgs Ltd,Consumer Discrescretionary,Retailers,%5EJ300.JO,STXFIN.JO,False,3312.0,3312.0,-0.06,-0.1,2.3,0.01,1.01,1.11,1.14,1.17,1.14,1.25,1.38
+CML.JO,Coronation Fund Mngrs Ld,Financials,Investment Banking and Brokerage Services,%5EJ300.JO,STXFIN.JO,False,3919.0,3919.0,-0.33,-0.04,2.11,-0.0,1.0,0.98,1.01,1.12,1.01,1.11,1.33
+COH.JO,Curro Holdings Limited,Consumer Discrescretionary,Consumer Services,%5EJ300.JO,STXFIN.JO,False,1271.0,1271.0,-0.81,-0.88,2.71,0.01,1.01,1.0,1.05,0.99,1.03,1.16,1.2
+CPI.JO,Capitec Bank Hldgs Ltd,Financials,Banks,%5EJ300.JO,STXFIN.JO,False,288691.0,288691.0,0.12,0.79,1.91,0.02,1.02,0.98,1.1,1.23,1.01,1.21,1.44
+CSB.JO,Cashbuild Ltd,Consumer Discrescretionary,Retailers,%5EJ300.JO,STXFIN.JO,False,16840.0,16840.0,-0.64,-0.48,1.38,-0.02,0.98,0.95,0.99,1.01,0.98,1.09,1.22
+DCP.JO,Dis-Chem Pharmacies Ltd,Consumer Staples,"Personal Care, Drug and Grocery Stores",%5EJ300.JO,STXFIN.JO,False,3650.0,3650.0,-0.06,-0.11,1.33,0.03,1.03,0.97,0.93,1.02,0.99,1.02,1.22
+DNB.JO,Deneb Investments Ltd,Financials,Investment Banking and Brokerage Services,%5EJ300.JO,STXFIN.JO,False,210.0,210.0,-0.56,-0.7,-2.19,0.01,1.01,0.85,0.81,0.82,0.87,0.9,1.02
+DRA.JO,DRA Global Ltd,Industrials,Construction Materials,%5EJ300.JO,STXFIN.JO,False,2226.0,2226.0,-0.84,-1.16,-0.11,0.02,1.02,0.97,0.78,1.03,0.99,0.86,1.23
+DSY.JO,Discovery Ltd,Financials,Life Insurance,%5EJ300.JO,STXFIN.JO,False,15012.0,15012.0,-0.23,-0.21,1.8,0.02,1.02,1.03,1.09,0.93,1.05,1.2,1.14
+DTC.JO,Datatec Ltd,Technology,Software and Computer Services,%5EJ300.JO,STXFIN.JO,False,3615.0,3615.0,-0.17,-0.24,2.51,-0.01,0.99,0.96,0.84,0.78,0.98,0.93,0.98
+EMH.JO,E Media Holdings Ltd,Consumer Discrescretionary,Media,%5EJ300.JO,STXFIN.JO,False,316.0,316.0,-0.84,-0.83,-1.08,0.01,1.01,0.95,0.83,0.88,0.97,0.92,1.09
+ENX.JO,enX Group LImited,Industrials,General Industrials,%5EJ300.JO,STXFIN.JO,False,550.0,550.0,-0.03,0.08,0.11,0.05,1.05,0.97,1.02,1.03,0.99,1.12,1.23
+EOH.JO,EOH Holdings Ltd,Technology,Software and Computer Services,%5EJ300.JO,STXFIN.JO,False,170.0,170.0,-1.07,-21.76,1.06,0.01,1.01,1.06,1.0,1.29,1.09,1.1,1.5
+EPE.JO,EPE Capital Partners Ltd,Financials,Closed end Investments,%5EJ300.JO,STXFIN.JO,False,397.0,397.0,-0.93,-1.06,-0.91,0.01,1.01,0.96,0.9,0.72,0.98,0.99,0.92
+EXX.JO,Exxaro Resources Ltd,Energy,Oil Gas and Coal,%5EJ300.JO,STXFIN.JO,False,16693.0,16693.0,-0.17,-0.19,-1.83,-0.02,0.98,0.8,0.76,0.79,0.82,0.84,0.99
+FBR.JO,Famous Brands Ltd,Consumer Discrescretionary,Travel and Leisure,%5EJ300.JO,STXFIN.JO,False,5744.0,5744.0,-0.73,-0.89,1.51,0.03,1.03,1.04,0.99,0.87,1.07,1.09,1.07
+FSR.JO,Firstrand Ltd,Financials,Banks,%5EJ300.JO,STXFIN.JO,False,8450.0,8450.0,-0.06,-0.27,1.75,0.02,1.02,1.01,1.06,1.13,1.04,1.17,1.34
+FTH.JO,Frontier Transport Hldg Ld,Consumer Discrescretionary,Travel and Leisure,%5EJ300.JO,STXFIN.JO,False,761.0,761.0,-0.21,-0.49,0.49,-0.0,1.0,0.9,0.96,1.05,0.93,1.06,1.26
+GFI.JO,Gold Fields Ltd,Basic Materials,Precious Metals and Mining,%5EJ300.JO,STXRES.JO,False,29999.0,29999.0,-0.32,-0.8,0.67,0.0,1.0,0.94,1.02,1.01,0.91,0.93,1.25
+GLN.JO,Glencore plc,Basic Materials,Industrial Metals and Mining,%5EJ300.JO,STXRES.JO,False,9647.0,9647.0,-0.26,-0.31,1.57,-0.07,0.93,0.93,0.88,0.88,0.9,0.8,1.1
+GND.JO,Grindrod Ltd,Industrials,Industrial Transportation,%5EJ300.JO,STXFIN.JO,False,1576.0,1576.0,-0.05,-0.18,1.93,-0.0,1.0,0.94,0.96,1.08,0.96,1.06,1.29
+GPL.JO,Grand Parade Inv Ltd,Consumer Discrescretionary,Travel and Leisure,%5EJ300.JO,STXFIN.JO,False,370.0,370.0,-0.02,0.02,0.47,0.03,1.03,0.96,0.89,1.06,0.98,0.98,1.27
+GSH.JO,Grindrod Shipping Hldg Ltd,Industrials,Industrial Transportation,%5EJ300.JO,STXFIN.JO,False,25902.0,25902.0,-0.46,-0.41,0.48,0.02,1.02,0.95,0.9,1.22,0.97,1.0,1.44
+HCI.JO,Hosken Cons Inv Ltd,Financials,Investment Banking and Brokerage Services,%5EJ300.JO,STXFIN.JO,False,18001.0,18001.0,-0.29,-0.38,-0.5,-0.01,0.99,0.87,0.87,0.85,0.89,0.96,1.05
+HDC.JO,Hudaco Industries Ltd,Industrials,Industrial Support Services,%5EJ300.JO,STXFIN.JO,False,18111.0,18111.0,-0.08,-0.27,0.05,0.01,1.01,0.97,0.94,0.95,1.0,1.04,1.16
+HIL.JO,Homechoice Int plc,Consumer Discrescretionary,Retailers,%5EJ300.JO,STXFIN.JO,False,2900.0,2900.0,-0.16,-0.16,0.57,0.8,1.8,108.22,0.99,1.15,111.13,1.09,1.36
+HUG.JO,Huge Group Ltd,Telecommunications,Telecommunication Service Providers,%5EJ300.JO,STXFIN.JO,False,205.0,205.0,-0.74,-0.5,-0.07,-0.01,0.99,0.96,0.73,0.86,0.98,0.8,1.06
+IMP.JO,Impala Platinum Hlgs Ltd,Basic Materials,Precious Metals and Mining,%5EJ300.JO,STXRES.JO,False,9134.0,9134.0,-0.68,-0.62,1.87,-0.05,0.95,0.99,0.86,1.12,0.95,0.78,1.36
+INL.JO,Investec Ltd,Financials,Banks,%5EJ300.JO,STXFIN.JO,False,13324.0,13324.0,-0.07,-0.08,-1.28,-0.0,1.0,0.93,0.96,0.97,0.96,1.05,1.17
+INP.JO,Investec plc,Financials,Banks,%5EJ300.JO,STXFIN.JO,False,13388.0,13388.0,-0.1,-0.17,-1.06,-0.01,0.99,0.9,0.92,0.93,0.92,1.02,1.13
+ISA.JO,ISA Holdings Limited,Technology,Software and Computer Services,%5EJ300.JO,STXFIN.JO,False,167.0,167.0,-0.11,-0.14,-4.2,-0.01,0.99,0.83,0.84,1.03,0.86,0.92,1.24
+ITE.JO,Italtile Ltd,Consumer Discrescretionary,Retailers,%5EJ300.JO,STXFIN.JO,False,1262.0,1262.0,-0.3,-0.21,1.81,0.01,1.01,0.98,1.11,0.99,1.01,1.22,1.19
+IVT.JO,Invicta Holdings Ltd,Industrials,Industrial Support Services,%5EJ300.JO,STXFIN.JO,False,3200.0,3200.0,-0.54,-0.37,1.6,0.05,1.05,0.98,1.08,1.06,1.0,1.19,1.27
+JSE.JO,JSE Ltd,Financials,Investment Banking and Brokerage Services,%5EJ300.JO,STXFIN.JO,False,11005.0,11005.0,-0.43,-0.39,2.05,0.01,1.01,0.97,1.01,1.19,1.0,1.12,1.4
+KAL.JO,KAL Group Limited,Consumer Discrescretionary,Retailers,%5EJ300.JO,STXFIN.JO,False,4870.0,4870.0,-0.07,-0.11,2.14,-0.0,1.0,0.97,0.88,0.98,1.0,0.97,1.19
+KAP.JO,KAP Limited,Industrials,General Industrials,%5EJ300.JO,STXFIN.JO,False,320.0,320.0,-0.66,-0.6,1.99,0.01,1.01,1.0,1.06,1.23,1.02,1.16,1.44
+KIO.JO,Kumba Iron Ore Ltd,Basic Materials,Industrial Metals and Mining,%5EJ300.JO,STXRES.JO,False,36279.0,36279.0,-0.38,-0.35,-1.32,-0.08,0.92,0.94,0.75,0.6,0.91,0.68,0.81
+KRO.JO,Karooooo Ltd,Technology,Software and Computer Services,%5EJ300.JO,STXFIN.JO,False,64536.0,64536.0,-0.08,-0.05,-0.42,0.05,1.05,1.02,1.04,1.08,1.05,1.14,1.29
+KST.JO,PSG Fin Services Ltd,Financials,Investment Banking and Brokerage Services,%5EJ300.JO,STXFIN.JO,False,1674.0,1674.0,-0.04,0.17,1.88,-0.03,0.97,0.93,0.88,0.96,0.95,0.97,1.16
+LBR.JO,Libstar Holdings Ltd,Consumer Staples,Food Producers,%5EJ300.JO,STXFIN.JO,False,433.0,433.0,-0.78,-0.74,2.65,0.03,1.03,1.03,0.99,1.05,1.06,1.09,1.25
+LEW.JO,Lewis Group Ltd,Consumer Discrescretionary,Retailers,%5EJ300.JO,STXFIN.JO,False,5920.0,5920.0,0.11,0.75,0.25,0.05,1.05,0.97,1.16,1.22,1.0,1.28,1.43
+LHC.JO,Life Healthc Grp Hldgs Ltd,Healthcare,Healthcare Providers,%5EJ300.JO,STXFIN.JO,False,1396.0,1396.0,-0.62,-0.65,2.07,0.02,1.02,1.02,1.11,1.05,1.05,1.22,1.26
+LNF.JO,London Fin Inv Group plc,Financials,Investment Banking and Brokerage Services,%5EJ300.JO,STXFIN.JO,False,1480.0,1480.0,-0.6,-0.61,0.79,-0.23,0.77,0.92,105.0,107.65,0.94,115.72,111.22
+MCG.JO,MultiChoice Group Ltd,Telecommunications,Telecommunication Service Providers,%5EJ300.JO,STXFIN.JO,False,10976.0,10976.0,-0.43,-0.38,1.36,0.01,1.01,0.94,0.82,0.89,0.97,0.9,1.09
+MDI.JO,Master Drilling Grp Ltd,Basic Materials,Industrial Metals and Mining,%5EJ300.JO,STXRES.JO,False,1200.0,1200.0,-0.32,-0.22,1.15,-0.01,0.99,0.96,1.05,0.81,0.93,0.95,1.03
+MFL.JO,Metrofile Holdings Ltd,Industrials,Industrial Support Services,%5EJ300.JO,STXFIN.JO,False,249.0,249.0,-0.37,-0.53,0.97,-0.04,0.96,1.03,0.83,0.8,1.06,0.92,0.99
+MNP.JO,Mondi plc,Industrials,General Industrials,%5EJ300.JO,STXFIN.JO,False,33882.0,33882.0,-0.05,0.32,0.2,-0.03,0.97,0.87,0.78,0.88,0.89,0.86,1.08
+MPT.JO,Mpact Limited,Industrials,General Industrials,%5EJ300.JO,STXFIN.JO,False,3000.0,3000.0,-0.28,-0.35,1.52,0.03,1.03,0.98,0.95,0.92,1.01,1.04,1.12
+MRP.JO,Mr Price Group Ltd,Consumer Discrescretionary,Retailers,%5EJ300.JO,STXFIN.JO,False,23625.0,23625.0,-0.19,-0.45,2.29,0.04,1.04,1.04,1.1,1.2,1.07,1.22,1.42
+MST.JO,Mustek Ltd,Technology,Technology Hardware and Hardware Equipment,%5EJ300.JO,STXFIN.JO,False,1355.0,1355.0,-0.24,-0.25,1.33,0.13,1.13,1.03,1.38,1.08,1.05,1.52,1.28
+MTA.JO,Metair Investments Ltd,Consumer Discrescretionary,Automobile and Parts,%5EJ300.JO,STXFIN.JO,False,1320.0,1320.0,-0.79,-0.48,-0.04,0.04,1.04,0.89,1.02,0.85,0.92,1.12,1.05
+MTH.JO,Motus Holdings Ltd,Consumer Discrescretionary,Retailers,%5EJ300.JO,STXFIN.JO,False,11132.0,11132.0,-0.16,-0.37,1.74,0.03,1.03,1.01,1.06,1.01,1.03,1.17,1.21
+MTM.JO,Momentum Group Limited,Financials,Life Insurance,%5EJ300.JO,STXFIN.JO,False,2757.0,2757.0,0.06,0.24,1.93,0.07,1.07,1.07,1.07,1.15,1.1,1.18,1.36
+MTN.JO,MTN Group Ltd,Telecommunications,Telecommunication Service Providers,%5EJ300.JO,STXFIN.JO,False,8875.0,8875.0,-0.65,-0.76,1.24,0.01,1.01,1.09,0.9,0.87,1.12,0.99,1.08
+MUR.JO,Murray & Roberts Hldgs,Industrials,Construction Materials,%5EJ300.JO,STXFIN.JO,False,295.0,295.0,-0.93,-1.14,-0.98,0.13,1.13,1.08,1.4,2.08,1.1,1.54,2.32
+N91.JO,Ninety One plc,Financials,Investment Banking and Brokerage Services,%5EJ300.JO,STXFIN.JO,False,3875.0,3875.0,-0.38,-0.38,1.12,-0.01,0.99,0.91,0.84,0.86,0.94,0.93,1.06
+NED.JO,Nedbank Group Ltd,Financials,Banks,%5EJ300.JO,STXFIN.JO,False,29825.0,29825.0,-0.03,-0.13,1.54,0.05,1.05,1.07,1.07,1.2,1.1,1.18,1.42
+NPH.JO,Northam Platinum Hldgs Ltd,Basic Materials,Precious Metals and Mining,%5EJ300.JO,STXRES.JO,False,12562.0,12562.0,-0.78,-0.79,-0.58,0.01,1.01,0.93,0.91,0.93,0.89,0.82,1.16
+NPK.JO,Nampak Ltd,Industrials,General Industrials,%5EJ300.JO,STXFIN.JO,False,39104.0,39104.0,-0.93,-0.79,1.49,0.07,1.07,0.91,1.78,1.87,0.93,1.96,2.1
+NPN.JO,Naspers Ltd -N-,Technology,Software and Computer Services,%5EJ300.JO,STXFIN.JO,False,366923.0,366923.0,-0.11,-0.11,0.7,0.01,1.01,0.99,0.8,0.95,1.01,0.88,1.15
+NTC.JO,Netcare Limited,Healthcare,Healthcare Providers,%5EJ300.JO,STXFIN.JO,False,1350.0,1350.0,-0.8,-0.74,1.88,0.03,1.03,1.05,1.02,0.86,1.08,1.12,1.06
+NVS.JO,Novus Holdings Limited,Industrials,Industrial Support Services,%5EJ300.JO,STXFIN.JO,False,606.0,606.0,-0.11,0.04,-1.09,0.04,1.04,1.02,1.25,1.32,1.05,1.38,1.54
+NWL.JO,Nu-World Hldgs Ltd,Consumer Discrescretionary,Leisure Goods,%5EJ300.JO,STXFIN.JO,False,2850.0,2850.0,-0.22,-0.34,1.03,-0.0,1.0,0.97,0.88,0.86,0.99,0.97,1.06
+NY1.JO,Ninety One Limited,Financials,Open end and miscellaneous Investment Vehicles,%5EJ300.JO,STXFIN.JO,False,3826.0,3826.0,-0.36,-0.34,1.31,-0.0,1.0,0.92,0.85,0.85,0.95,0.93,1.05
+OCE.JO,Oceana Group Ltd,Consumer Staples,Food Producers,%5EJ300.JO,STXFIN.JO,False,7085.0,7085.0,-0.32,-0.41,1.02,0.01,1.01,0.97,0.84,0.86,1.0,0.93,1.06
+OMN.JO,Omnia Holdings Ltd,Basic Materials,Chemicals,%5EJ300.JO,STXFIN.JO,False,6212.0,6212.0,-0.51,-0.36,-0.84,-0.03,0.97,0.92,0.99,0.87,0.95,1.1,1.07
+OMU.JO,Old Mutual Limited,Financials,Life Insurance,%5EJ300.JO,STXFIN.JO,False,1244.0,1244.0,-0.23,-0.17,2.03,-0.01,0.99,0.97,0.92,0.92,1.0,1.01,1.12
+OUT.JO,OUTsurance Group Limited,Financials,Non-Life Insurance,%5EJ300.JO,STXFIN.JO,False,4825.0,4825.0,0.06,0.18,1.88,0.0,1.0,0.96,0.95,0.99,0.99,1.05,1.19
+PAN.JO,Pan African Resource plc,Basic Materials,Precious Metals and Mining,%5EJ300.JO,STXRES.JO,False,716.0,716.0,-0.09,-0.25,2.09,0.03,1.03,1.07,1.27,1.28,1.03,1.16,1.53
+PBG.JO,PBT Group Limited,Technology,Software and Computer Services,%5EJ300.JO,STXFIN.JO,False,589.0,589.0,-0.21,-0.1,0.27,-0.02,0.98,0.84,0.79,0.79,0.87,0.87,0.99
+PIK.JO,Pick n Pay Stores Ltd,Consumer Staples,"Personal Care, Drug and Grocery Stores",%5EJ300.JO,STXFIN.JO,False,2358.0,2358.0,-0.79,-0.51,1.81,-0.03,0.97,0.95,0.78,0.91,0.97,0.86,1.11
+PMR.JO,Premier Group Limited,Consumer Staples,Food Producers,%5EJ300.JO,STXFIN.JO,False,7526.0,7526.0,-0.03,0.02,0.75,0.02,1.02,0.99,1.06,1.0,1.02,1.17,1.2
+PMV.JO,Primeserv Group Ltd,Industrials,General Industrials,%5EJ300.JO,STXFIN.JO,False,210.0,210.0,-0.06,-0.17,1.04,0.07,1.07,0.91,1.31,1.31,0.94,1.45,1.52
+PPC.JO,PPC Limited,Industrials,Construction Materials,%5EJ300.JO,STXFIN.JO,False,400.0,400.0,-0.81,-0.74,0.98,0.05,1.05,1.02,1.03,0.96,1.05,1.13,1.16
+PPE.JO,Purple Group Ltd,Financials,Investment Banking and Brokerage Services,%5EJ300.JO,STXFIN.JO,False,78.0,78.0,-0.74,0.12,0.0,-0.01,0.99,0.93,0.84,1.14,0.96,0.93,1.34
+PPH.JO,Pepkor Holdings Ltd,Consumer Discrescretionary,Retailers,%5EJ300.JO,STXFIN.JO,False,2067.0,2067.0,-0.17,-0.09,0.7,0.02,1.02,0.98,0.95,0.93,1.01,1.05,1.14
+PRX.JO,Prosus N.V.,Technology,Software and Computer Services,%5EJ300.JO,STXFIN.JO,False,65888.0,65888.0,-0.38,-0.32,0.83,-0.0,1.0,0.97,0.81,0.96,0.99,0.9,1.17
+QFH.JO,Quantum Foods Hldgs Ltd,Consumer Staples,Food Producers,%5EJ300.JO,STXFIN.JO,False,860.0,860.0,-0.61,-0.75,-0.96,-0.14,0.86,0.76,0.56,1.7,0.78,0.62,1.93
+QLT.JO,Quilter plc,Financials,Investment Banking and Brokerage Services,%5EJ300.JO,STXFIN.JO,False,3300.0,3300.0,-0.15,-0.45,0.37,0.07,1.07,1.05,1.04,1.23,1.08,1.15,1.45
+RBO.JO,Rainbow Chicken Limited,Consumer Staples,Food Producers,%5EJ300.JO,STXFIN.JO,False,340.0,,,,,,,0.92,,,0.94,,
+RBX.JO,Raubex Group Ltd,Industrials,Construction Materials,%5EJ300.JO,STXFIN.JO,False,4546.0,4546.0,0.01,0.16,1.55,-0.02,0.98,0.97,1.09,1.47,1.0,1.2,1.69
+RCL.JO,RCL Foods Limited,Consumer Staples,Food Producers,%5EJ300.JO,STXFIN.JO,False,970.0,970.0,-0.62,-0.66,0.47,-0.03,0.97,0.95,0.76,0.85,0.98,0.84,1.05
+REM.JO,Remgro Ltd,Financials,Investment Banking and Brokerage Services,%5EJ300.JO,STXFIN.JO,False,14044.0,14044.0,-0.28,-0.42,1.26,-0.0,1.0,0.98,0.95,0.81,1.0,1.04,1.01
+RFG.JO,RFG Holdings Limited,Consumer Staples,Food Producers,%5EJ300.JO,STXFIN.JO,False,1593.0,1593.0,-0.47,-0.32,1.97,0.0,1.0,0.97,0.96,1.02,1.0,1.06,1.23
+RLO.JO,Reunert Ltd,Industrials,Electronic and Electrical Equipment,%5EJ300.JO,STXFIN.JO,False,7500.0,7500.0,-0.02,-0.04,1.9,0.0,1.0,0.98,0.96,0.98,1.01,1.06,1.19
+RMH.JO,RMB Holdings Ltd,Financials,Investment Banking and Brokerage Services,%5EJ300.JO,STXFIN.JO,False,43.0,43.0,-0.01,0.02,2.4,0.02,1.02,0.96,0.95,1.04,0.98,1.05,1.25
+RNI.JO,Reinet Investments S.C.A,Financials,Investment Banking and Brokerage Services,%5EJ300.JO,STXFIN.JO,False,46788.0,46788.0,-0.08,-0.02,-0.12,0.01,1.01,0.96,0.86,0.81,0.98,0.94,1.01
+RTO.JO,Rex Trueform Group Ltd,Consumer Discrescretionary,Retailers,%5EJ300.JO,STXFIN.JO,False,11.26,11.26,-0.79,-0.78,,-0.98,0.02,0.01,0.83,0.85,0.01,0.92,1.05
+S32.JO,South32 Limited,Basic Materials,Industrial Metals and Mining,%5EJ300.JO,STXRES.JO,False,3621.0,3621.0,-0.46,-0.58,1.54,-0.11,0.89,1.0,0.79,0.84,0.97,0.72,1.06
+SAP.JO,Sappi Ltd,Basic Materials,Industrial Materials,%5EJ300.JO,STXRES.JO,False,4715.0,4715.0,-0.62,-0.77,0.2,-0.05,0.95,0.86,0.86,0.83,0.82,0.78,1.05
+SBK.JO,Standard Bank Group Ltd,Financials,Banks,%5EJ300.JO,STXFIN.JO,False,23717.0,23717.0,-0.03,-0.13,1.89,0.02,1.02,1.04,1.09,1.01,1.07,1.2,1.22
+SBP.JO,Sabvest Capital Limited,Financials,Investment Banking and Brokerage Services,%5EJ300.JO,STXFIN.JO,False,7550.0,7550.0,-0.25,-0.2,1.86,0.0,1.0,0.95,0.95,0.9,0.97,1.05,1.1
+SDO.JO,Stadio Holdings Limited,Consumer Discrescretionary,Consumer Services,%5EJ300.JO,STXFIN.JO,False,545.0,545.0,-0.44,-0.57,-0.16,0.02,1.02,0.94,0.99,0.97,0.96,1.09,1.17
+SEB.JO,Sebata Holdings Ltd,Technology,Software and Computer Services,%5EJ300.JO,STXFIN.JO,False,120.0,120.0,-0.91,-0.98,1.76,-0.02,0.98,1.12,0.54,0.56,1.15,0.6,0.75
+SEP.JO,Sephaku Holdings Ltd,Industrials,Construction Materials,%5EJ300.JO,STXFIN.JO,False,220.0,220.0,-0.79,-0.79,1.64,0.07,1.07,1.23,1.68,1.74,1.27,1.85,1.97
+SFN.JO,Sasfin Holdings Ltd,Financials,Investment Banking and Brokerage Services,%5EJ300.JO,STXFIN.JO,False,2626.0,2626.0,-0.57,-0.59,0.17,0.11,1.11,0.91,1.35,1.1,0.93,1.49,1.31
+SHG.JO,Sea Harvest Group Ltd,Consumer Staples,Food Producers,%5EJ300.JO,STXFIN.JO,False,836.0,836.0,-0.91,-0.96,1.51,-0.01,0.99,0.97,0.9,0.83,1.0,0.99,1.03
+SHP.JO,Shoprite Holdings Ltd,Consumer Staples,"Personal Care, Drug and Grocery Stores",%5EJ300.JO,STXFIN.JO,False,30330.0,30330.0,0.1,0.49,1.36,0.01,1.01,0.98,0.99,1.0,1.0,1.09,1.21
+SLM.JO,Sanlam Limited,Financials,Life Insurance,%5EJ300.JO,STXFIN.JO,False,8490.0,8490.0,0.14,0.58,1.75,-0.0,1.0,1.0,0.98,1.05,1.03,1.08,1.26
+SNT.JO,Santam Limited,Financials,Non-Life Insurance,%5EJ300.JO,STXFIN.JO,False,35300.0,35300.0,-0.12,-0.41,1.6,0.0,1.0,1.02,0.99,1.02,1.05,1.09,1.22
+SNV.JO,Santova Limited,Industrials,Industrial Transportation,%5EJ300.JO,STXFIN.JO,False,775.0,775.0,-0.22,-0.18,-0.28,0.0,1.0,0.91,0.87,0.86,0.93,0.96,1.06
+SOH.JO,South Ocean Holdings Ltd,Industrials,Electronic and Electrical Equipment,%5EJ300.JO,STXFIN.JO,False,270.0,270.0,0.03,0.05,0.89,0.08,1.08,0.96,1.7,1.92,0.98,1.88,2.15
+SOL.JO,Sasol Limited,Basic Materials,Chemicals,%5EJ300.JO,STXFIN.JO,False,13485.0,13485.0,-0.77,-0.87,0.47,-0.02,0.98,0.88,0.89,0.78,0.9,0.98,0.97
+SPG.JO,Super Group Ltd,Industrials,Industrial Transportation,%5EJ300.JO,STXFIN.JO,False,2611.0,2611.0,-0.56,-0.67,-0.98,-0.02,0.98,0.82,0.79,0.8,0.84,0.87,0.99
+SPP.JO,The Spar Group Ltd,Consumer Staples,"Personal Care, Drug and Grocery Stores",%5EJ300.JO,STXFIN.JO,False,12451.0,12451.0,-0.58,-0.55,0.9,0.01,1.01,0.96,1.05,1.06,0.98,1.16,1.26
+SSK.JO,Stefanutti Stck Hldgs Ltd,Industrials,Construction Materials,%5EJ300.JO,STXFIN.JO,False,272.0,272.0,-0.75,-0.78,-0.93,0.03,1.03,0.93,2.26,1.99,0.96,2.49,2.23
+SSU.JO,Southern Sun Ltd,Consumer Discrescretionary,Travel and Leisure,%5EJ300.JO,STXFIN.JO,False,609.0,609.0,-0.14,-0.39,-0.2,0.04,1.04,0.98,1.01,1.04,1.0,1.11,1.25
+SSW.JO,Sibanye Stillwater Ltd,Basic Materials,Precious Metals and Mining,%5EJ300.JO,STXRES.JO,False,1971.0,1971.0,-0.86,-0.74,1.47,-0.05,0.95,0.95,0.85,0.8,0.91,0.77,1.03
+SUI.JO,Sun International Ltd,Consumer Discrescretionary,Travel and Leisure,%5EJ300.JO,STXFIN.JO,False,4061.0,4061.0,-0.6,-0.58,1.7,0.02,1.02,1.04,0.95,0.88,1.07,1.04,1.09
+SUR.JO,Spur Corporation Ltd,Consumer Discrescretionary,Travel and Leisure,%5EJ300.JO,STXFIN.JO,False,3500.0,3500.0,-0.12,-0.41,1.5,0.01,1.01,0.95,0.98,1.01,0.98,1.08,1.21
+SYG.JO,Sygnia Limited,Financials,Investment Banking and Brokerage Services,%5EJ300.JO,STXFIN.JO,False,2030.0,2030.0,-0.11,-0.32,0.08,-0.01,0.99,0.96,0.88,0.97,0.98,0.97,1.17
+TBS.JO,Tiger Brands Ltd,Consumer Staples,Food Producers,%5EJ300.JO,STXFIN.JO,False,22381.0,22381.0,-0.57,-0.65,0.81,0.03,1.03,0.96,0.95,0.96,0.99,1.05,1.16
+TCP.JO,Transaction Capital Ltd,Financials,Finance and Credit Services,%5EJ300.JO,STXFIN.JO,False,290.0,290.0,-0.94,-0.7,0.97,-0.01,0.99,0.96,0.96,0.26,0.98,1.06,0.44
+TFG.JO,The Foschini Group Limited,Consumer Discrescretionary,Retailers,%5EJ300.JO,STXFIN.JO,False,13893.0,13893.0,-0.28,-0.39,1.62,0.01,1.01,0.97,1.19,1.12,0.99,1.31,1.33
+TGA.JO,Thungela Resources Ltd,Energy,Oil Gas and Coal,%5EJ300.JO,STXFIN.JO,False,12105.0,12105.0,-0.49,-0.42,-1.37,0.04,1.04,0.94,0.75,1.04,0.96,0.82,1.25
+TKG.JO,Telkom SA SOC Ltd,Telecommunications,Telecommunication Service Providers,%5EJ300.JO,STXFIN.JO,False,2581.0,2581.0,-0.87,-1.04,2.64,0.01,1.01,1.04,0.9,0.76,1.07,0.99,0.96
+TLM.JO,Telemaster Holdings Ltd,Telecommunications,Telecommunication Service Providers,%5EJ300.JO,STXFIN.JO,False,1.03,1.03,-1.11,-0.73,-1.49,-0.27,0.73,0.01,0.68,0.01,0.01,0.75,0.18
+TMT.JO,Trematon Capital Inv Ltd,Financials,Closed end Investments,%5EJ300.JO,STXFIN.JO,False,240.0,240.0,-0.34,-0.3,1.86,0.04,1.04,1.12,1.1,0.9,1.15,1.22,1.1
+TPC.JO,Transpaco Ltd,Industrials,General Industrials,%5EJ300.JO,STXFIN.JO,False,3251.0,3251.0,-0.22,-0.25,-0.46,0.01,1.01,0.01,0.01,0.01,0.01,0.01,0.18
+TRL.JO,Trellidor Hldgs Ltd,Industrials,Construction Materials,%5EJ300.JO,STXFIN.JO,False,165.0,165.0,-0.82,-0.66,-0.33,-0.06,0.94,0.81,0.91,0.93,0.84,1.0,1.13
+TRU.JO,Truworths Int Ltd,Consumer Discrescretionary,Retailers,%5EJ300.JO,STXFIN.JO,False,9772.0,9772.0,-0.04,-0.17,2.03,-0.01,0.99,1.0,1.03,1.14,1.02,1.13,1.35
+TSG.JO,Tsogo Sun Limited,Consumer Discrescretionary,Travel and Leisure,%5EJ300.JO,STXFIN.JO,False,1169.0,1169.0,-0.42,-0.43,1.51,0.02,1.02,0.97,0.9,0.87,0.99,0.99,1.07
+UPL.JO,Universal Partners Ltd,Financials,Investment Banking and Brokerage Services,%5EJ300.JO,STXFIN.JO,False,1610.0,1610.0,-0.5,-0.22,-1.16,-0.07,0.93,0.68,0.62,56.39,0.7,0.69,58.34
+VOD.JO,Vodacom Group Ltd,Telecommunications,Telecommunication Service Providers,%5EJ300.JO,STXFIN.JO,False,10831.0,10831.0,-0.4,-0.45,2.18,0.02,1.02,1.07,1.01,1.01,1.1,1.11,1.22
+WBC.JO,We Buy Cars Hlds Ltd,Consumer Discrescretionary,Retailers,%5EJ300.JO,STXFIN.JO,False,2890.0,2890.0,-0.15,-0.17,2.93,0.01,1.01,1.02,1.04,,1.04,1.15,
+WBO.JO,Wilson Bayly Hlm-Ovc Ltd,Industrials,Construction Materials,%5EJ300.JO,STXFIN.JO,False,18933.0,18933.0,0.07,0.46,1.92,0.03,1.03,0.97,1.05,1.25,1.0,1.15,1.46
+WHL.JO,Woolworths Holdings Ltd,Consumer Discrescretionary,Retailers,%5EJ300.JO,STXFIN.JO,False,6409.0,6409.0,-0.29,-0.36,1.35,-0.0,1.0,1.03,0.91,0.82,1.06,1.0,1.02
+WKF.JO,Workforce Holdings Ltd,Industrials,General Industrials,%5EJ300.JO,STXFIN.JO,False,125.0,125.0,-0.49,-0.48,-0.33,0.99,1.99,0.83,0.76,0.71,0.86,0.84,0.9
+YRK.JO,York Timber Holdings Ltd,Basic Materials,Industrial Materials,%5EJ300.JO,STXRES.JO,False,210.0,210.0,-0.57,-0.65,-0.47,0.04,1.04,0.94,1.29,1.0,0.91,1.17,1.23
+ZED.JO,Zeder Inv Ltd,Financials,Investment Banking and Brokerage Services,%5EJ300.JO,STXFIN.JO,False,190.0,190.0,0.05,0.22,-0.43,0.01,1.01,0.93,0.91,1.11,0.96,1.0,1.32
+ZZD.JO,Zeda Limited,Consumer Discrescretionary,Consumer Services,%5EJ300.JO,STXFIN.JO,False,1233.0,1233.0,-0.58,-0.7,0.97,-0.0,1.0,0.95,0.89,0.91,0.98,0.98,1.11
