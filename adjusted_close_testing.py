@@ -1311,8 +1311,6 @@ def daily_job():
     for direc in DIRECTORIES:
         os.makedirs(direc, exist_ok=True)
 
-    #generate_bollinger_and_overbought_oversold_adjusted_close()
-
     hparams = {
         'HP_LSTM_UNITS': 400,
         'HP_DROPOUT': 0.3,
@@ -1363,6 +1361,7 @@ def daily_job():
     
     print(Fore.GREEN + "PDF created and uploaded" + Fore.RESET)
 
+    # Prepare top and bottom data for the email
     top_bottom_data = {
         'Z_Score': {
             'top_10': stock_data.nlargest(10, 'Z-Score').to_dict(orient='records'),
@@ -1415,8 +1414,8 @@ def daily_job():
     )
     
     print("Job completed" + Fore.RESET)
- 
 
+ 
 def setup_scheduler():
     schedule.every().day.at("06:30").do(daily_job)
     while True:
