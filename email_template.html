@@ -71,6 +71,7 @@
             <thead>
                 <tr>
                     <th colspan="2">Z-Score</th>
+                    <th colspan="2">Moving Averages</th>
                     <th colspan="2">RSI 1m</th>
                     <th colspan="2">RSI 3m</th>
                     <th colspan="2">RSI 3m-1m</th>
@@ -79,20 +80,22 @@
                     <th colspan="2">Prediction change - 1 month</th>
                 </tr>
                 <tr>
-                    <th>best 10</th>
-                    <th>worst 10</th>
-                    <th>best 10</th>
-                    <th>worst 10</th>
-                    <th>best 10</th>
-                    <th>worst 10</th>
-                    <th>best 10</th>
-                    <th>worst 10</th>
-                    <th>best 10</th>
-                    <th>worst 10</th>
-                    <th>best 10</th>
-                    <th>worst 10</th>
-                    <th>best 10</th>
-                    <th>worst 10</th>
+                    <th>Best 10</th>
+                    <th>Worst 10</th>
+                    <th>Best 10</th>
+                    <th>Worst 10</th>
+                    <th>Best 10</th>
+                    <th>Worst 10</th>
+                    <th>Best 10</th>
+                    <th>Worst 10</th>
+                    <th>Best 10</th>
+                    <th>Worst 10</th>
+                    <th>Best 10</th>
+                    <th>Worst 10</th>
+                    <th>Best 10</th>
+                    <th>Worst 10</th>
+                    <th>Best 10</th>
+                    <th>Worst 10</th>
                 </tr>
             </thead>
             <tbody>
@@ -100,85 +103,97 @@
                     <!-- Z-Score best 10 -->
                     <td>
                         {% for stock in top_bottom_data['Z_Score']['top_10'] %}
-                        {{ stock['code'] }}<br>{{ stock['Z-Score'] }}<br>
+                        {{ stock['code'] }}<br>{{ stock['Z-Score']|round(2) }}<br>
                         {% endfor %}
                     </td>
                     <!-- Z-Score worst 10 -->
                     <td>
                         {% for stock in top_bottom_data['Z_Score']['bottom_10'] %}
-                        {{ stock['code'] }}<br>{{ stock['Z-Score'] }}<br>
+                        {{ stock['code'] }}<br>{{ stock['Z-Score']|round(2) }}<br>
+                        {% endfor %}
+                    </td>
+                    <!-- Moving Averages best 10 -->
+                    <td>
+                        {% for stock in top_bottom_data['Moving_Averages']['top_10'] %}
+                        {{ stock['code'] }}<br>{{ stock['Moving_Averages']|round(2) }}<br>
+                        {% endfor %}
+                    </td>
+                    <!-- Moving Averages worst 10 -->
+                    <td>
+                        {% for stock in top_bottom_data['Moving_Averages']['bottom_10'] %}
+                        {{ stock['code'] }}<br>{{ stock['Moving_Averages']|round(2) }}<br>
                         {% endfor %}
                     </td>
                     <!-- RSI 1m best 10 -->
                     <td>
                         {% for stock in top_bottom_data['RSI_1M']['top_10'] %}
-                        {{ stock['code'] }}<br>{{ stock['SECTOR RSI 1M'] }}<br>
+                        {{ stock['code'] }}<br>{{ stock['SECTOR RSI 1M']|round(2) }}<br>
                         {% endfor %}
                     </td>
                     <!-- RSI 1m worst 10 -->
                     <td>
                         {% for stock in top_bottom_data['RSI_1M']['bottom_10'] %}
-                        {{ stock['code'] }}<br>{{ stock['SECTOR RSI 1M'] }}<br>
+                        {{ stock['code'] }}<br>{{ stock['SECTOR RSI 1M']|round(2) }}<br>
                         {% endfor %}
                     </td>
                     <!-- RSI 3m best 10 -->
                     <td>
                         {% for stock in top_bottom_data['RSI_3M']['top_10'] %}
-                        {{ stock['code'] }}<br>{{ stock['SECTOR RSI 3M'] }}<br>
+                        {{ stock['code'] }}<br>{{ stock['SECTOR RSI 3M']|round(2) }}<br>
                         {% endfor %}
                     </td>
                     <!-- RSI 3m worst 10 -->
                     <td>
                         {% for stock in top_bottom_data['RSI_3M']['bottom_10'] %}
-                        {{ stock['code'] }}<br>{{ stock['SECTOR RSI 3M'] }}<br>
+                        {{ stock['code'] }}<br>{{ stock['SECTOR RSI 3M']|round(2) }}<br>
                         {% endfor %}
                     </td>
                     <!-- RSI 3m-1m best 10 -->
                     <td>
                         {% for stock in top_bottom_data['RSI_3M_1M']['top_10'] %}
-                        {{ stock['code'] }}<br>{{ stock['RSI 3M-1M'] }}<br>
+                        {{ stock['code'] }}<br>{{ stock['RSI 3m-1m']|round(2) }}<br>
                         {% endfor %}
                     </td>
                     <!-- RSI 3m-1m worst 10 -->
                     <td>
                         {% for stock in top_bottom_data['RSI_3M_1M']['bottom_10'] %}
-                        {{ stock['code'] }}<br>{{ stock['RSI 3M-1M'] }}<br>
+                        {{ stock['code'] }}<br>{{ stock['RSI 3m-1m']|round(2) }}<br>
                         {% endfor %}
                     </td>
                     <!-- RSI 6m best 10 -->
                     <td>
                         {% for stock in top_bottom_data['RSI_6M']['top_10'] %}
-                        {{ stock['code'] }}<br>{{ stock['SECTOR RSI 6M'] }}<br>
+                        {{ stock['code'] }}<br>{{ stock['SECTOR RSI 6M']|round(2) }}<br>
                         {% endfor %}
                     </td>
                     <!-- RSI 6m worst 10 -->
                     <td>
                         {% for stock in top_bottom_data['RSI_6M']['bottom_10'] %}
-                        {{ stock['code'] }}<br>{{ stock['SECTOR RSI 6M'] }}<br>
+                        {{ stock['code'] }}<br>{{ stock['SECTOR RSI 6M']|round(2) }}<br>
                         {% endfor %}
                     </td>
                     <!-- Prediction change - 1 week best 10 -->
                     <td>
                         {% for stock in top_bottom_data['Next_Week_Prediction_Change']['top_10'] %}
-                        {{ stock['code'] }}<br>{{ stock['Next Week Prediction'] }}<br>
+                        {{ stock['code'] }}<br>{{ (stock['Next Week Prediction'] * 100)|round(2) }}%<br>
                         {% endfor %}
                     </td>
                     <!-- Prediction change - 1 week worst 10 -->
                     <td>
                         {% for stock in top_bottom_data['Next_Week_Prediction_Change']['bottom_10'] %}
-                        {{ stock['code'] }}<br>{{ stock['Next Week Prediction'] }}<br>
+                        {{ stock['code'] }}<br>{{ (stock['Next Week Prediction'] * 100)|round(2) }}%<br>
                         {% endfor %}
                     </td>
                     <!-- Prediction change - 1 month best 10 -->
                     <td>
                         {% for stock in top_bottom_data['Next_Month_Prediction_Change']['top_10'] %}
-                        {{ stock['code'] }}<br>{{ stock['Next Month Prediction'] }}<br>
+                        {{ stock['code'] }}<br>{{ (stock['Next Month Prediction'] * 100)|round(2) }}%<br>
                         {% endfor %}
                     </td>
                     <!-- Prediction change - 1 month worst 10 -->
                     <td>
                         {% for stock in top_bottom_data['Next_Month_Prediction_Change']['bottom_10'] %}
-                        {{ stock['code'] }}<br>{{ stock['Next Month Prediction'] }}<br>
+                        {{ stock['code'] }}<br>{{ (stock['Next Month Prediction'] * 100)|round(2) }}%<br>
                         {% endfor %}
                     </td>
                 </tr>
@@ -193,6 +208,7 @@
                     <th>Name</th>
                     <th>Share Price</th>
                     <th>Z-score</th>
+                    <th>Moving Av</th>
                     <th>RSI 1m</th>
                     <th>RSI 3m</th>
                     <th>RSI 6m</th>
@@ -201,7 +217,7 @@
                 </tr>
             </thead>
             <tbody>
-                <!-- Sorted by sector and alphabetically by share code -->
+                <!-- Iterate through the sorted stock data -->
                 {% for stock in sorted_stock_data %}
                 <tr>
                     <td>{{ stock['industry'] }}</td>
@@ -209,11 +225,12 @@
                     <td>{{ stock['share_name'] }}</td>
                     <td>{{ stock['Current Price'] }}</td>
                     <td>{{ stock['Z-Score'] }}</td>
+                    <td>{{ stock['Moving_Averages'] }}</td>
                     <td>{{ stock['SECTOR RSI 1M'] }}</td>
                     <td>{{ stock['SECTOR RSI 3M'] }}</td>
                     <td>{{ stock['SECTOR RSI 6M'] }}</td>
-                    <td>{{ stock['Next Week Prediction'] }}</td>
-                    <td>{{ stock['Next Month Prediction'] }}</td>
+                    <td>{{ (stock['Next Week Prediction'] * 100)|round(2) }}%</td>
+                    <td>{{ (stock['Next Month Prediction'] * 100)|round(2) }}%</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -221,3 +238,4 @@
     </div>
 </body>
 </html>
+
