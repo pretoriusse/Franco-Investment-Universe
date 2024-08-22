@@ -29,6 +29,7 @@
             color: #333333;
             border-bottom: 2px solid #dddddd;
             padding-bottom: 5px;
+            font-size: 16px;
         }
         table {
             width: 100%;
@@ -95,59 +96,180 @@
             <span>○ -S : Signal went from <strong>Neutral</strong> to <strong>Sell</strong></span>
         </div>
 
-        {% if 'RSI' in top_bottom_data %}
-        <h2>RSI</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>Highest</th>
-                    <th>Lowest</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>{{ top_bottom_data['RSI'].top_10[0]['share_name'] }}<br>{{ top_bottom_data['RSI'].top_10[0]['value'] }}%</td>
-                    <td>{{ top_bottom_data['RSI'].bottom_10[0]['share_name'] }}<br>{{ top_bottom_data['RSI'].bottom_10[0]['value'] }}%</td>
-                </tr>
-            </tbody>
-        </table>
-        {% endif %}
-
-        {% if 'Prediction' in top_bottom_data %}
-        <h2>Prediction</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>Highest</th>
-                    <th>Lowest</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>{{ top_bottom_data['Prediction'].top_10[0]['share_name'] }}<br>{{ top_bottom_data['Prediction'].top_10[0]['value'] }}%</td>
-                    <td>{{ top_bottom_data['Prediction'].bottom_10[0]['share_name'] }}<br>{{ top_bottom_data['Prediction'].bottom_10[0]['value'] }}%</td>
-                </tr>
-            </tbody>
-        </table>
-        {% endif %}
-
-        {% if 'Z_Score' in top_bottom_data %}
         <h2>Z-Score</h2>
         <table>
             <thead>
                 <tr>
-                    <th>Highest</th>
-                    <th>Lowest</th>
+                    <th colspan="2">Best 10</th>
+                    <th colspan="2">Worst 10</th>
+                </tr>
+                <tr>
+                    <th>Ticker</th>
+                    <th>Value</th>
+                    <th>Ticker</th>
+                    <th>Value</th>
                 </tr>
             </thead>
             <tbody>
-                <tr>
-                    <td>{{ top_bottom_data['Z_Score'].top_10[0]['share_name'] }}<br>{{ top_bottom_data['Z_Score'].top_10[0]['value'] }}</td>
-                    <td>{{ top_bottom_data['Z_Score'].bottom_10[0]['share_name'] }}<br>{{ top_bottom_data['Z_Score'].bottom_10[0]['value'] }}</td>
-                </tr>
+                <!-- Loop through your data to populate the table rows -->
             </tbody>
         </table>
-        {% endif %}
+
+        <h2>Moving Averages</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th colspan="2">Best 10</th>
+                    <th colspan="2">Worst 10</th>
+                </tr>
+                <tr>
+                    <th>Ticker</th>
+                    <th>Value</th>
+                    <th>Ticker</th>
+                    <th>Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Loop through your data to populate the table rows -->
+            </tbody>
+        </table>
+
+        <h2>RSI 1m</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th colspan="2">Best 10</th>
+                    <th colspan="2">Worst 10</th>
+                </tr>
+                <tr>
+                    <th>Ticker</th>
+                    <th>Value</th>
+                    <th>Ticker</th>
+                    <th>Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Loop through your data to populate the table rows -->
+            </tbody>
+        </table>
+
+        <h2>RSI 3m</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th colspan="2">Best 10</th>
+                    <th colspan="2">Worst 10</th>
+                </tr>
+                <tr>
+                    <th>Ticker</th>
+                    <th>Value</th>
+                    <th>Ticker</th>
+                    <th>Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Loop through your data to populate the table rows -->
+            </tbody>
+        </table>
+
+        <h2>RSI 3m-1m</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th colspan="2">Best 10</th>
+                    <th colspan="2">Worst 10</th>
+                </tr>
+                <tr>
+                    <th>Ticker</th>
+                    <th>Value</th>
+                    <th>Ticker</th>
+                    <th>Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Loop through your data to populate the table rows -->
+            </tbody>
+        </table>
+
+        <h2>RSI 6m</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th colspan="2">Best 10</th>
+                    <th colspan="2">Worst 10</th>
+                </tr>
+                <tr>
+                    <th>Ticker</th>
+                    <th>Value</th>
+                    <th>Ticker</th>
+                    <th>Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Loop through your data to populate the table rows -->
+            </tbody>
+        </table>
+
+        <h2>Prediction Change - 1 Week</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th colspan="2">Best 10</th>
+                    <th colspan="2">Worst 10</th>
+                </tr>
+                <tr>
+                    <th>Ticker</th>
+                    <th>Value</th>
+                    <th>Ticker</th>
+                    <th>Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Loop through your data to populate the table rows -->
+            </tbody>
+        </table>
+
+        <h2>Prediction Change - 1 Month</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th colspan="2">Best 10</th>
+                    <th colspan="2">Worst 10</th>
+                </tr>
+                <tr>
+                    <th>Ticker</th>
+                    <th>Value</th>
+                    <th>Ticker</th>
+                    <th>Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Loop through your data to populate the table rows -->
+            </tbody>
+        </table>
+
+        <h2>Detailed Report</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Sector</th>
+                    <th>Ticker</th>
+                    <th>Name</th>
+                    <th>Share Price</th>
+                    <th>Z-Score</th>
+                    <th>Moving Av</th>
+                    <th>RSI 1m</th>
+                    <th>RSI 3m</th>
+                    <th>RSI 3m-1m</th>
+                    <th>RSI 6m</th>
+                    <th>Prediction Change - 1 Week</th>
+                    <th>Prediction Change - 1 Month</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Loop through your detailed data to populate the table rows -->
+            </tbody>
+        </table>
 
         <div class="button-container">
             <a href="{{ summary_report_url }}" class="download-button">Download Summary Report</a>

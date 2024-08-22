@@ -23,7 +23,7 @@
         .header img {
             max-width: 100%;
             height: auto;
-            max-height: 200px; /* Ensures the logo doesn't get too large */
+            max-height: 200px;
         }
         h2 {
             color: #333333;
@@ -34,21 +34,19 @@
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 20px;
+            table-layout: fixed;
         }
         th, td {
             border: 1px solid #dddddd;
-            text-align: left;
-            padding: 12px;
+            text-align: center;
+            padding: 8px;
+            word-wrap: break-word;
+            font-size: 12px;
         }
         th {
-            background-color: #f2f2f2;
+            background-color: #0073e6;
+            color: #ffffff;
             font-weight: bold;
-        }
-        .positive {
-            color: green;
-        }
-        .negative {
-            color: red;
         }
     </style>
 </head>
@@ -57,59 +55,98 @@
         <div class="header">
             <img src="https://cdn1.pretoriusse.net/CDN/Logo/Logo/cover.png" alt="Pretoriusse Logo">
         </div>
-        <h2>Summary Report for {{today}}</h2>
-        {% for metric, data in top_bottom_data.items() %}
-        <h2>{{ metric.replace('_', ' ') }}</h2>
-        <h3>Top 10</h3>
+        <h2>Stock Report Summary</h2>
         <table>
-            <tr>
-                <th>Share Code</th>
-                <th>Name</th>
-                <th>Current Price</th>
-                <th>{{ metric.replace('_', ' ') }}</th>
-            </tr>
-            {% for stock in data.top_10 %}
-            <tr>
-                <td><a href="https://finance.yahoo.com/quote/{{ stock['code'] }}/">{{ stock['code'] }}</a></td>
-                <td>{{ stock['share_name'] }}</td>
-                <td>{{ stock['Current Price'] }}</td>
-                <td>{{ stock[metric] }}</td>
-            </tr>
-            {% endfor %}
+            <thead>
+                <tr>
+                    <th colspan="2">Z-score</th>
+                    <th colspan="2">Moving Averages</th>
+                    <th colspan="2">RSI 1m</th>
+                    <th colspan="2">RSI 3m</th>
+                    <th colspan="2">RSI 3m-1m</th>
+                    <th colspan="2">RSI 6m</th>
+                    <th colspan="2">Prediction change - 1 week</th>
+                    <th colspan="2">Prediction change - 1 month</th>
+                </tr>
+                <tr>
+                    <th>best 10</th>
+                    <th>worst 10</th>
+                    <th>best 10</th>
+                    <th>worst 10</th>
+                    <th>best 10</th>
+                    <th>worst 10</th>
+                    <th>best 10</th>
+                    <th>worst 10</th>
+                    <th>best 10</th>
+                    <th>worst 10</th>
+                    <th>best 10</th>
+                    <th>worst 10</th>
+                    <th>best 10</th>
+                    <th>worst 10</th>
+                    <th>best 10</th>
+                    <th>worst 10</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for i in range(10) %}
+                <tr>
+                    <td>{{ top_bottom_data['Z_Score'].top_10[i]['ticker'] }}<br>{{ top_bottom_data['Z_Score'].top_10[i]['value'] }}</td>
+                    <td>{{ top_bottom_data['Z_Score'].bottom_10[i]['ticker'] }}<br>{{ top_bottom_data['Z_Score'].bottom_10[i]['value'] }}</td>
+                    <td>{{ top_bottom_data['Moving_Averages'].top_10[i]['ticker'] }}<br>{{ top_bottom_data['Moving_Averages'].top_10[i]['value'] }}</td>
+                    <td>{{ top_bottom_data['Moving_Averages'].bottom_10[i]['ticker'] }}<br>{{ top_bottom_data['Moving_Averages'].bottom_10[i]['value'] }}</td>
+                    <td>{{ top_bottom_data['RSI_1m'].top_10[i]['ticker'] }}<br>{{ top_bottom_data['RSI_1m'].top_10[i]['value'] }}</td>
+                    <td>{{ top_bottom_data['RSI_1m'].bottom_10[i]['ticker'] }}<br>{{ top_bottom_data['RSI_1m'].bottom_10[i]['value'] }}</td>
+                    <td>{{ top_bottom_data['RSI_3m'].top_10[i]['ticker'] }}<br>{{ top_bottom_data['RSI_3m'].top_10[i]['value'] }}</td>
+                    <td>{{ top_bottom_data['RSI_3m'].bottom_10[i]['ticker'] }}<br>{{ top_bottom_data['RSI_3m'].bottom_10[i]['value'] }}</td>
+                    <td>{{ top_bottom_data['RSI_3m_1m'].top_10[i]['ticker'] }}<br>{{ top_bottom_data['RSI_3m_1m'].top_10[i]['value'] }}</td>
+                    <td>{{ top_bottom_data['RSI_3m_1m'].bottom_10[i]['ticker'] }}<br>{{ top_bottom_data['RSI_3m_1m'].bottom_10[i]['value'] }}</td>
+                    <td>{{ top_bottom_data['RSI_6m'].top_10[i]['ticker'] }}<br>{{ top_bottom_data['RSI_6m'].top_10[i]['value'] }}</td>
+                    <td>{{ top_bottom_data['RSI_6m'].bottom_10[i]['ticker'] }}<br>{{ top_bottom_data['RSI_6m'].bottom_10[i]['value'] }}</td>
+                    <td>{{ top_bottom_data['Prediction_1w'].top_10[i]['ticker'] }}<br>{{ top_bottom_data['Prediction_1w'].top_10[i]['value'] }}</td>
+                    <td>{{ top_bottom_data['Prediction_1w'].bottom_10[i]['ticker'] }}<br>{{ top_bottom_data['Prediction_1w'].bottom_10[i]['value'] }}</td>
+                    <td>{{ top_bottom_data['Prediction_1m'].top_10[i]['ticker'] }}<br>{{ top_bottom_data['Prediction_1m'].top_10[i]['value'] }}</td>
+                    <td>{{ top_bottom_data['Prediction_1m'].bottom_10[i]['ticker'] }}<br>{{ top_bottom_data['Prediction_1m'].bottom_10[i]['value'] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
         </table>
 
-        <h3>Bottom 10</h3>
         <table>
-            <tr>
-                <th>Share Code</th>
-                <th>Name</th>
-                <th>Current Price</th>
-                <th>{{ metric.replace('_', ' ') }}</th>
-            </tr>
-            {% for stock in data.bottom_10 %}
-            <tr>
-                <td><a href="https://finance.yahoo.com/quote/{{ stock['code'] }}/">{{ stock['code'] }}</a></td>
-                <td>{{ stock['share_name'] }}</td>
-                <td>{{ stock['Current Price'] }}</td>
-                <td>{{ stock[metric] }}</td>
-            </tr>
-            {% endfor %}
+            <thead>
+                <tr>
+                    <th>Sector</th>
+                    <th>Ticker</th>
+                    <th>Name</th>
+                    <th>Share Price</th>
+                    <th>Z-score</th>
+                    <th>Moving Av</th>
+                    <th>RSI 1m</th>
+                    <th>RSI 3m</th>
+                    <th>RSI 3m-1m</th>
+                    <th>RSI 6m</th>
+                    <th>Prediction change - 1 week</th>
+                    <th>Prediction change - 1 month</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for stock in full_stock_data %}
+                <tr>
+                    <td>{{ stock['sector'] }}</td>
+                    <td>{{ stock['ticker'] }}</td>
+                    <td>{{ stock['name'] }}</td>
+                    <td>{{ stock['share_price'] }}</td>
+                    <td>{{ stock['z_score'] }}</td>
+                    <td>{{ stock['moving_av'] }}</td>
+                    <td>{{ stock['rsi_1m'] }}</td>
+                    <td>{{ stock['rsi_3m'] }}</td>
+                    <td>{{ stock['rsi_3m_1m'] }}</td>
+                    <td>{{ stock['rsi_6m'] }}</td>
+                    <td>{{ stock['prediction_change_1w'] }}</td>
+                    <td>{{ stock['prediction_change_1m'] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
         </table>
-        {% endfor %}
-        {% for stockimg in stock_images %}
-        <div class="image-container">
-            <h3>{{ stockimg.name }}</h3>
-            {% if stockimg.prediction %}
-                <img src="data:image/png;base64,{{ stockimg.prediction }}" alt="{{ stockimg.ticker }} Close Prediction">
-            {% endif %}
-            {% if stockimg.adj_prediction %}
-                <img src="data:image/png;base64,{{ stockimg.adj_prediction }}" alt="{{ stockimg.ticker }} Adjusted Close Prediction">
-            {% endif %}
-            <img src="data:image/png;base64,{{ stockimg.bollinger }}" alt="{{ stockimg.ticker }} Bollinger">
-            <img src="data:image/png;base64,{{ stockimg.overbought_oversold }}" alt="{{ stockimg.ticker }} Overbought/Oversold">
-        </div>
-        {% endfor %}
-
     </div>
 </body>
 </html>
