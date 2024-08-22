@@ -71,7 +71,6 @@
             <thead>
                 <tr>
                     <th colspan="2">Z-Score</th>
-                    <th colspan="2">Moving Averages</th>
                     <th colspan="2">RSI 1m</th>
                     <th colspan="2">RSI 3m</th>
                     <th colspan="2">RSI 3m-1m</th>
@@ -80,8 +79,6 @@
                     <th colspan="2">Prediction change - 1 month</th>
                 </tr>
                 <tr>
-                    <th>Best 10</th>
-                    <th>Worst 10</th>
                     <th>Best 10</th>
                     <th>Worst 10</th>
                     <th>Best 10</th>
@@ -110,18 +107,6 @@
                     <td>
                         {% for stock in top_bottom_data['Z_Score']['bottom_10'] %}
                         {{ stock['code'] }}<br>{{ stock['Z-Score']|round(2) }}<br>
-                        {% endfor %}
-                    </td>
-                    <!-- Moving Averages best 10 -->
-                    <td>
-                        {% for stock in top_bottom_data['Moving_Averages']['top_10'] %}
-                        {{ stock['code'] }}<br>{{ stock['Moving_Averages']|round(2) }}<br>
-                        {% endfor %}
-                    </td>
-                    <!-- Moving Averages worst 10 -->
-                    <td>
-                        {% for stock in top_bottom_data['Moving_Averages']['bottom_10'] %}
-                        {{ stock['code'] }}<br>{{ stock['Moving_Averages']|round(2) }}<br>
                         {% endfor %}
                     </td>
                     <!-- RSI 1m best 10 -->
