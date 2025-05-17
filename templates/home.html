@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block title %}Home - MarketWatch{% endblock %}
+{% block content %}
+<section class="hero">
+    <div class="hero-content">
+        <h1>Welcome to MarketWatch</h1>
+        <p>Your gateway to real-time stock market insights and dynamic financial tools. Stay ahead of the market with our expertly curated reports, analysis, and subscription services.</p>
+        <a href="{{ url_for('subscriptions') }}" class="btn">Explore Subscriptions</a>
+    </div>
+    <div class="hero-image">
+        <img src="{{ url_for('static', filename='images/stock_market.jpg') }}" alt="Stock Market Overview">
+    </div>
+</section>
+
+<section class="features">
+    <div class="feature">
+        <h2>Daily Report emails</h2>
+        <p>Get daily insights from industry experts and analysts who keep you updated on market trends and forecasts right in your inbox.</p>
+        <img src="{{ url_for('static', filename='images/feature1.jpg') }}" alt="Email Reports">
+    </div>
+    <div class="feature">
+        <h2>Expert Analysis</h2>
+        <p>Get insights from industry experts and analysts who keep you updated on market trends and forecasts.</p>
+        <img src="{{ url_for('static', filename='images/feature2.jpg') }}" alt="Expert Analysis">
+    </div>
+    <div class="feature">
+        <h2>Personalized Reports</h2>
+        <p>Receive customized reports tailored to your investment portfolio and financial goals.</p>
+        <img src="{{ url_for('static', filename='images/feature3.jpg') }}" alt="Personalized Reports">
+    </div>
+</section>
+
+<section class="about">
+    <h2>About MarketWatch</h2>
+    <p>At MarketWatch, we are dedicated to providing our users with the tools and insights needed to navigate the complex world of stock trading. Whether you’re a seasoned investor or just getting started, our platform offers comprehensive resources to help you succeed. Join us today and take your investments to the next level.</p>
+</section>
+
+{% endblock %}

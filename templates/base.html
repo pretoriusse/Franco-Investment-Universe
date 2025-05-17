@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <!-- Bootstrap CSS -->
+    <link href="/static/css/bootstrap.min.css" 
+          rel="stylesheet" 
+          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" 
+          crossorigin="anonymous">
+    <title>{% block title %}MarketWatch{% endblock %}</title>
+    <style>
+        /* Flash message styles */
+        .flashes {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 500px;
+            z-index: 1000;
+        }
+
+        .flash {
+            padding: 15px 20px;
+            margin: 5px 0;
+            border-radius: 5px;
+            color: #fff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            opacity: 0.9;
+            transition: opacity 0.5s ease;
+        }
+
+        .flash-success { background-color: #28a745; } /* Green for success */
+        .flash-warning { background-color: #ffc107; } /* Yellow for warning */
+        .flash-danger { background-color: #dc3545; }  /* Red for error */
+
+        .flash .close-btn {
+            background: none;
+            border: none;
+            color: #fff;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        /* Hide content for printing */
+        @media print {
+            body {
+                display: none;
+            }
+        }
+
+        /* Disable text selection and copy-paste */
+        * {
+            user-select: none;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <!-- Bootstrap Navbar -->
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="{{ url_for('home') }}">MarketWatch</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
+                        aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('home') }}">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('subscriptions') }}">Subscriptions</a>
+                        </li>
+                        {% if current_user.is_authenticated %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('reports') }}">Reports</a>
+                            </li>
+                            {% if current_user.subscription_id == 2 %}
+                                <li class="nav-item">
+                                    <a class="nav-link" href="{{ url_for('portfolio') }}">Portfolio</a>
+                                </li>
+                            {% endif %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
+                            </li>
+                            
+                        {% else %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('login') }}">Login</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('register') }}">Register</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="content">
+        {% block content %}{% endblock %}
+        
+        <!-- Flash Messages Section -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flashes">
+                    {% for category, message in messages %}
+                        <div class="flash flash-{{ category }}">
+                            {{ message }}
+                            <button class="close-btn" onclick="this.parentElement.style.display='none';">X</button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+    </main>
+
+    <footer>
+        <p>© 2024 MarketWatch. All Rights Reserved.</p>
+    </footer>
+
+    <!-- Bootstrap JavaScript Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" 
+            integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" 
+            crossorigin="anonymous"></script>
+    <script src="/static/js/bootstrap.min.js"
+            crossorigin="anonymous"></script>
+    <script>
+        // Disable right-click
+        document.addEventListener('contextmenu', event => {
+            event.preventDefault();
+            disableUser();
+        });
+
+        // Disable text selection
+        document.addEventListener('selectstart', event => {
+            event.preventDefault();
+            disableUser();
+        });
+
+        // Disable Ctrl+C, Ctrl+V, Ctrl+S (copy-paste, save)
+        document.addEventListener('keydown', function(event) {
+            if ((event.ctrlKey && event.key === 'c') || 
+                (event.ctrlKey && event.key === 'v') || 
+                (event.ctrlKey && event.key === 's')) {
+                event.preventDefault();
+                disableUser();
+            }
+        });
+
+        // Detect screen capturing (can detect some tools)
+        setInterval(() => {
+            if (window.outerHeight - window.innerHeight > 200 || window.outerWidth - window.innerWidth > 200) {
+                document.body.innerHTML = "<h1>Screen capture detected!</h1>";
+                disableUser();
+            }
+        }, 500);
+
+        // Function to send POST request to disable user
+        function disableUser() {
+            fetch(`/disable-user/{{ current_user.id }}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token() }}'  // Include CSRF token
+                },
+                body: JSON.stringify({
+                    message: 'Forbidden action detected, user disabled!'
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('User disabled:', data);
+                window.location = '/logout';  // Redirect user after disabling
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+        }
+    </script>
+</body>
+</html>

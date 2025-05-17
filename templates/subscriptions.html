@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block title %}Subscriptions{% endblock %}
+{% block content %}
+<div class="subscription-container">
+    <h1>Choose Your Subscription Plan</h1>
+    <div class="subscription-cards">
+        {% for sub in subscriptions %}
+        <div class="subscription-card">
+            <div class="card-header">
+                <h2>{{ sub.name }}</h2>
+                <p>R{{ sub.cost }}<br>(incl. VAT) per user per month</p>
+            </div>
+            <div class="card-body">
+                <ul>
+                    {% for line in sub.detail.splitlines() %}
+                    <li>{{ line }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <div class="card-footer">
+                <a href="{{ url_for('register') }}"><button class="btn-primary">Subscribe Now</button></a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

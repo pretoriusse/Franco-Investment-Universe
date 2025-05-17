@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+
+{% block title %}Portfolio - MarketWatch{% endblock %}
+
+{% block content %}
+<style>
+    /* Watermark for screenshot prevention */
+    body::before {
+        {% if current_user.is_authenticated %}
+            content: "{{ current_user.id_number }} - {{ current_user.name }}";
+        {% endif %}
+        font-size: 50px;
+        color: rgba(0, 0, 0, 0.236);
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 1;
+        pointer-events: none;
+        user-select: none;
+        white-space: nowrap;
+        }
+</style>
+<section class="hero">
+    <div class="hero-content">
+        <h1>Portfolio Overview</h1>
+        <p>Access your portfolio details and transaction history with the latest insights.</p>
+    </div>
+    <div class="hero-image">
+        <img src="{{ url_for('static', filename='images/portfolio_overview.jpg') }}" alt="Portfolio Overview">
+    </div>
+</section>
+
+<section class="portfolio-list">
+    <h2>Your Portfolio</h2>
+    <table class="table portfolio-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Ticker</th>
+                <th>Weight</th>
+                <th>Comment</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in portfolio %}
+            <tr>
+                <td>{{ item.id }}</td>
+                <td>{{ item.ticker }}</td>
+                <td>{{ item.weight }}</td>
+                <td>{{ item.comment }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</section>
+
+<section class="transaction-history">
+    <h2>Recent Transaction History</h2>
+    <table class="table transaction-table">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Comment</th>
+                <th>Debit/Credit</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for transaction in transactions %}
+            <tr>
+                <td>{{ transaction.date }}</td>
+                <td>{{ transaction.action }}</td>
+                <td>{{ transaction.value }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</section>
+{% endblock %}
