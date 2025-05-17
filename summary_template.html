@@ -66,13 +66,13 @@
                 <th>Share Code</th>
                 <th>Name</th>
                 <th>Current Price</th>
-                <th>{{ metric.replace('_', ' ') }}</th>
+                <th>{{ metric.replace('_', ' ') | round(2) }}</th>
             </tr>
             {% for stock in data.top_10 %}
             <tr>
                 <td><a href="https://finance.yahoo.com/quote/{{ stock['code'] }}/">{{ stock['code'] }}</a></td>
                 <td>{{ stock['share_name'] }}</td>
-                <td>{{ stock['Current Price'] }}</td>
+                <td>{{ stock['Current Price'] / 100 | round(2) }}</td>
                 <td>{{ stock[metric] }}</td>
             </tr>
             {% endfor %}
@@ -90,7 +90,7 @@
             <tr>
                 <td><a href="https://finance.yahoo.com/quote/{{ stock['code'] }}/">{{ stock['code'] }}</a></td>
                 <td>{{ stock['share_name'] }}</td>
-                <td>{{ stock['Current Price'] }}</td>
+                <td>{{ stock['Current Price'] / 100 | round(2) }}</td>
                 <td>{{ stock[metric] }}</td>
             </tr>
             {% endfor %}
@@ -104,6 +104,9 @@
             {% endif %}
             {% if stockimg.adj_prediction %}
                 <img src="data:image/png;base64,{{ stockimg.adj_prediction }}" alt="{{ stockimg.ticker }} Adjusted Close Prediction">
+            {% endif %}
+            {% if stockimg.close_prediction %}
+                <img src="data:image/png;base64,{{ stockimg.close_prediction }}" alt="{{ stockimg.ticker }} Close Prediction">
             {% endif %}
             <img src="data:image/png;base64,{{ stockimg.bollinger }}" alt="{{ stockimg.ticker }} Bollinger">
             <img src="data:image/png;base64,{{ stockimg.overbought_oversold }}" alt="{{ stockimg.ticker }} Overbought/Oversold">

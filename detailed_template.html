@@ -79,7 +79,7 @@
             <tr>
                 <td><a href="https://finance.yahoo.com/quote/{{ stock['code'] }}/">{{ stock['code'] }}</a></td>
                 <td>{{ stock['share_name'] }}</td>
-                <td>{{ stock['Current Price'] }}</td>
+                <td>{{ stock['Current Price'] /100 | round(2) }}</td>
             </tr>
             {% endfor %}
         </table>
@@ -98,9 +98,9 @@
             <tr>
                 <td><a href="https://finance.yahoo.com/quote/{{ stock['code'] }}/">{{ stock['code'] }}</a></td>
                 <td>{{ stock['share_name'] }}</td>
-                <td>{{ stock['Current Price'] }}</td>
-                <td class="{{ 'positive' if stock['Next Week Prediction'] >= 0 else 'negative' }}">{{ stock['Next Week Prediction']}}</td>
-                <td class="{{ 'positive' if stock['Next Month Prediction'] >= 0 else 'negative' }}">{{ stock['Next Month Prediction'] }}</td>
+                <td>{{ stock['Current Price'] /100 | round(2) }}</td>
+                <td class="{{ 'positive' if stock['Next Week Prediction'] >= 0 else 'negative' }}">{{ stock['Next Week Prediction'] | round(2) }}</td>
+                <td class="{{ 'positive' if stock['Next Month Prediction'] >= 0 else 'negative' }}">{{ stock['Next Month Prediction'] | round(2) }}</td>
                 <td>{{ stock['Z-Score'] }}</td>
                 <td class="{{ 'positive' if stock['Overbought_Oversold'] >= 0 else 'negative' }}">{{ stock['Overbought_Oversold_Value'] }}</td>
             </tr>
@@ -123,7 +123,7 @@
             <tr>
                 <td><a href="https://finance.yahoo.com/quote/{{ stock['code'] }}/">{{ stock['code'] }}</a></td>
                 <td>{{ stock['share_name'] }}</td>
-                <td>{{ stock['Current Price'] }}</td>
+                <td>{{ stock['Current Price'] /100 | round(2) }}</td>
                 <td class="{{ 'rsi-positive' if stock['SECTOR RSI 1M'] >= 1 else 'rsi-negative' }}">{{ stock['SECTOR RSI 1M'] }}</td>
                 <td class="{{ 'rsi-positive' if stock['SECTOR RSI 3M'] >= 1 else 'rsi-negative' }}">{{ stock['SECTOR RSI 3M'] }}</td>
                 <td class="{{ 'rsi-positive' if stock['SECTOR RSI 6M'] >= 1 else 'rsi-negative' }}">{{ stock['SECTOR RSI 6M'] }}</td>

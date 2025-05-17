@@ -1,5 +1,4 @@
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 from assets.models import Base
 from assets.const import DB_PARAMS
 
