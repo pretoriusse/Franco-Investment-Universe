@@ -1,16 +1,15 @@
-import yfinance as yf
+import os
 import pandas as pd
-import time
 from tqdm import tqdm
-from concurrent.futures import ThreadPoolExecutor
-from datetime import timedelta
-from datetime import datetime
-from assets.database_queries import (
-    fetch_latest_commodity_date,
-    insert_commodities_batch,
-    close_session,
-    fetch_commodity_universe_from_db
-)
+import time
+import random
+import logging
+from assets.database_queries import fetch_commodity_universe_from_db, fetch_latest_commodity_date, insert_commodities_batch
+import yfinance as yf
+from yfinance.exceptions import YFPricesMissingError
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 class UploadProgress:
     def __init__(self, total):
@@ -31,80 +30,140 @@ class UploadProgress:
             ticker_progress.close()
             del self.current_progresses[ticker]
 
-def fetch_data(ticker, start_date):
-    stock = yf.Ticker(ticker)
-    hist = stock.history(start=start_date, interval="1d")
-    
-    if hist.empty:
-        return None
+def make_dates_timezone_naive(date_obj):
+    """Convert date_obj to timezone-naive if it is timezone-aware."""
+    if isinstance(date_obj, pd.Timestamp) and date_obj.tzinfo is not None:
+        return date_obj.tz_localize(None)
+    return date_obj
 
-    hist['Date'] = hist.index
-    all_dates = pd.date_range(start=hist.index.min(), end=hist.index.max(), freq='D')
-    hist = hist.reindex(all_dates, method='pad').reset_index(drop=True)
+def upload_ticker(ticker, comparison_market, comparison_sector, progress: UploadProgress):
+    max_retries = 3
+    delay = 5  # Initial delay for retry backoff
+    for attempt in range(max_retries):
+        try:
+            df: pd.DataFrame
+            # Fetch the latest date for the ticker from the database
+            latest_date = fetch_latest_commodity_date(ticker)
+            logging.info(f"latest_date for {ticker}: {latest_date}")
 
-    data_list = []
-    for index, row in hist.iterrows():
-        adj_close = row['Adj Close'] if 'Adj Close' in row else row['Close']
-        data_list.append({
-            'date': row['Date'].strftime('%Y-%m-%d'),
-            'ticker': ticker,
-            'Open': round(row['Open'], 2),
-            'High': round(row['High'], 2),
-            'Low': round(row['Low'], 2),
-            'Close': round(row['Close'], 2),
-            'Adj Close': round(adj_close, 2)
-        })
+            if latest_date:
+                # Convert to pd.Timestamp for consistent comparison
+                check_date = pd.Timestamp(latest_date) + pd.Timedelta(days=1)
+                now = pd.Timestamp.now()
 
-    return data_list
+                # Only download if there's new data to fetch
+                if check_date.date() > now.date():
+                    logging.info(f"No new data needed for ticker {ticker} as the latest date is today.")
+                    progress.update_ticker_progress(ticker, 100)
+                    return
 
-def process_commodity_upload(ticker, progress):
-    try:
-        latest_date = fetch_latest_commodity_date(ticker)
-        current_date = datetime.now().date()
-        if latest_date:
-            if latest_date == current_date:
-                print(f"No new data needed for ticker {ticker} as the latest date is today.")
+                start_date = check_date.strftime('%Y-%m-%d')
+                logging.info(f"Downloading data for {ticker} starting from {start_date}")
+                df = yf.download(ticker, start=start_date, interval='1d') # type: ignore
+
+            else:
+                # New ticker without data in the database; download from the earliest available date
+                logging.info(f"Downloading complete data for new ticker {ticker}")
+                df = yf.download(ticker, interval='1d', period='max') # type: ignore
+
+            # Check if DataFrame is empty (e.g., if the ticker is delisted)
+            if df.empty:
+                logging.error(f"No data found for ticker {ticker}. It may be delisted or not available.")
+                progress.update_ticker_progress(ticker, 100)
                 return
-            start_date = (latest_date + timedelta(days=1)).strftime('%Y-%m-%d')
-        else:
-            start_date = '2004-01-01'
+            
+            tickerName = ticker.replace('.JO', '')
 
-        data_list = fetch_data(ticker, start_date)
-        if data_list:
-            insert_commodities_batch(data_list)
-    except Exception as e:
-        print(f"An error occurred while processing ticker {ticker}: {e}")
-    finally:
-        close_session()
+            df.to_csv(os.path.join('data', f'{tickerName}', 'yfdata.csv'))
+            
+            lines: list
+            with open(os.path.join('data', f'{tickerName}', 'yfdata.csv'), 'r') as f:
+                lines = f.readlines()
 
-    # Update the progress bar
-    progress.update_ticker_progress(ticker, 100)
-    # Add a delay of 5 seconds
-    time.sleep(5)
+            lines.pop(1)
+
+            lines.remove('Date,,,,,\n')
+
+            os.remove(os.path.join('data', f'{tickerName}', 'yfdata.csv'))
+            
+            with open(os.path.join('data', f'{tickerName}', 'yfdata.csv'), 'w+') as f:
+                f.writelines(lines)
+
+
+            df = pd.read_csv(os.path.join('data', f'{tickerName}', 'yfdata.csv'))
+            df.reset_index(drop=False)
+            df.rename(columns={'Price': 'Date'}, inplace=True)
+
+            # Ensure the Date column is in datetime format
+            df['Date'] = pd.to_datetime(df['Date'], errors='coerce')
+            df.dropna(subset=['Date'], inplace=True)
+
+            # Fill missing dates with the previous available values (pad method)
+            all_dates = pd.date_range(start=df['Date'].min(), end=df['Date'].max(), freq='D')
+            df = df.set_index('Date').reindex(all_dates, method='pad').reset_index(drop=False)
+
+
+            # Batch processing and data insertion
+            batch = []
+            index = 0
+
+            for i, row in df.iterrows():
+                row_data = {
+                    'date': row['index'].strftime('%Y-%m-%d'),
+                    'ticker': ticker,
+                    'Open': row['Open'],
+                    'High': row['High'],
+                    'Low': row['Low'],
+                    'Close': row['Close'],
+                    'Volume': row['Volume'],
+                    'AdjClose': row['Close']
+                }
+                batch.append(row_data)
+
+                # Insert batch if size reaches 500 to optimize database performance
+                if len(batch) >= 500:
+                    insert_commodities_batch(batch, on_conflict_update=True)  # Use upsert
+                    batch.clear()
+                    progress_percentage = round(((int(index) + 1) / len(df)) * 100, 2)
+                    progress.update_ticker_progress(ticker, progress_percentage)
+                
+                index += 1
+
+            # Insert any remaining data
+            if batch:
+                insert_commodities_batch(batch, on_conflict_update=True)  # Use upsert
+                progress.update_ticker_progress(ticker, 100)
+
+            logging.info(f"Successfully uploaded data for ticker {ticker}")
+            break  # Exit the retry loop if successful
+
+        except YFPricesMissingError as e:
+            logging.error(f"{ticker} possibly delisted; {e}. Skipping...")
+            progress.update_ticker_progress(ticker, 100)
+            return
+        except Exception as e:
+            logging.error(f"An error occurred: {e} for ticker {ticker}. Attempt {attempt + 1}/{max_retries}")
+            time.sleep(delay)
+            delay *= 2  # Exponential backoff
+    else:
+        logging.error(f"Failed to download data for {ticker} after {max_retries} attempts. Skipping...")
 
 def main():
-    try:
-        commodity_universe = fetch_commodity_universe_from_db()
-        tickers = commodity_universe['code'].tolist()
+    # Fetch stock universe from the database
+    stock_universe = fetch_commodity_universe_from_db()
+    if stock_universe.empty:
+        logging.error("No tickers found in the database.")
+        return
 
-        if not tickers:
-            print("No commodities found in the database.")
-            return
+    progress = UploadProgress(stock_universe.shape[0])
 
-        progress = UploadProgress(len(tickers))
+    # Process each ticker sequentially with a delay
+    for _, row in stock_universe.iterrows():
+        if row['commodity']:  # Skip commodities if needed
+            upload_ticker(row['code'], row['rsi_comparison_market'], row['rsi_comparison_sector'], progress)
+            time.sleep(1 + random.uniform(0, 5))  # Wait 1 to 5 seconds between downloads
 
-        with ThreadPoolExecutor(max_workers=1) as executor:
-            futures = []
-            for ticker in tickers:
-                futures.append(executor.submit(process_commodity_upload, ticker, progress))
-                time.sleep(5)  # Ensure there is a delay between starting threads
-
-            for future in futures:
-                future.result()
-        progress.close()
-
-    except Exception:
-        print('No Commodities in database.')
+    logging.info("All tickers have been processed.")
 
 if __name__ == "__main__":
     main()
