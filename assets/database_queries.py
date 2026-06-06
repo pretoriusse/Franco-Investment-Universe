@@ -124,11 +124,10 @@ def get_ticker_from_db(ticker: str):
         .order_by(StockDataHistory.date.asc()).all()
 
         df = pd.DataFrame(ticker_data)
-        df['Close'] = df['close']
         if df.empty:
             logger.info(f"No data found for {ticker} after fetching from DB.")
             return pd.DataFrame()
-
+        df['Close'] = df['close']
         return df
 
     except Exception as e:
@@ -154,11 +153,10 @@ def get_ticker_from_db_with_date_select(ticker: str, start_date: str, end_date: 
         .order_by(StockDataHistory.date.asc()).all()
         
         df = pd.DataFrame(ticker_data)
-        df['Close'] = df['close']
         if df.empty:
             logger.info(f"No data found for {ticker} after fetching from DB.")
             return pd.DataFrame()
-
+        df['Close'] = df['close']
         return df
 
     except Exception as e:
@@ -330,10 +328,10 @@ def insert_dividends_batch(batch):
 def fetch_latest_commodity_date(ticker):
     session = Session()
     try:
-        result = session.query(func.max(Commodity.date)).scalar()
+        result = session.query(func.max(Commodity.date)).filter(Commodity.ticker == ticker).scalar()
         return result if result else None
     except Exception as e:
-        logger.error(f"Error fetching latest date: {e}")
+        logger.error(f"Error fetching latest commodity date for {ticker}: {e}")
         return None
     finally:
         session.close()
@@ -415,6 +413,8 @@ def fetch_all_zar_usd():
     except Exception as e:
         logger.error(f"Error fetching ZAR/USD data: {e}")
         return []
+    finally:
+        session.close()
 
 def insert_zar_good_period(period):
     session = Session()
