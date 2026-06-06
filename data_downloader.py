@@ -1,5 +1,6 @@
 import schedule
 from assets import upload_history, zar_process, dividends, fetch_daily_commodity_data, const
+from assets.news_sentiment import run_daily_sentiment_pipeline
 import time
 import threading
 import psycopg2
@@ -50,7 +51,7 @@ def main():
     start_thread(upload_history.main, 'Upload History')
     #start_thread(dividends.main, 'Dividend Upload')
     start_thread(fetch_daily_commodity_data.main, 'Commodity Upload')
-    
+
     for thread in threads:
         thread.join()
 
@@ -58,6 +59,16 @@ def main():
     zar_process.process_zar()
     #dividends.main()
     fetch_daily_commodity_data.main()
+
+    # Fetch and store news sentiment for all tickers after market close
+    try:
+        from assets import database_queries as db_queries
+        universe = db_queries.fetch_stock_and_commodity_universe_from_db()
+        tickers = universe['code'].dropna().tolist()
+        if tickers:
+            run_daily_sentiment_pipeline(tickers)
+    except Exception as e:
+        print(f"Sentiment pipeline error: {e}")
 
     # Call the function to update materialized views
     update_materialized_views()

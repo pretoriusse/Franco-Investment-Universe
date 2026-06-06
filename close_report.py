@@ -83,6 +83,16 @@ SUMMARY_REPORT = True
 
 DIRECTORIES = ['data', 'logs', 'plots', '/mnt/backups/Shares/Reports', 'models', 'runs', 'data/runs']
 
+# Sentiment adjustment weight: at a compound score of ±1.0 the week prediction
+# shifts by ±SENTIMENT_WEEK_WEIGHT and month by ±SENTIMENT_MONTH_WEIGHT of the
+# current price.  Keep these small — sentiment is one signal among many.
+SENTIMENT_WEEK_WEIGHT = 0.005   # 0.5 % per unit of compound score
+SENTIMENT_MONTH_WEIGHT = 0.003  # 0.3 % per unit of compound score
+
+# In-memory model cache: model_path -> loaded Keras model.
+# Populated during fetch_data(); cleared once at the end of daily_job().
+_model_cache: dict = {}
+
 # Configure Tensorflow
 # Set GPU options for memory growth
 gpus = tf.config.list_physical_devices('GPU')
@@ -824,9 +834,6 @@ def save_predictions_to_db(ticker: str, start_date, next_month_predictions: list
 
 def predict_close_value(hist, hparams, ticker):
     logger.info(f"Starting close prediction for ticker: {ticker}")
-    
-    # Clear any previous session
-    clear_session()
 
     # Scale the data
     scaler = MinMaxScaler()
@@ -835,37 +842,33 @@ def predict_close_value(hist, hparams, ticker):
     X, y = create_sequences(hist['close'].values, seq_length)
     X = X.reshape((X.shape[0], X.shape[1], 1))
 
-    # Split the data into training and testing sets
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-    # Sanitize the ticker name
-    sanitized_ticker = sanitize_ticker(ticker)
-
-    # Model directory
     sanitized_ticker = sanitize_ticker(ticker)
     model_ticker = sanitized_ticker.replace('.JO', '')
-
     model_dir = os.path.join('models', model_ticker)
     model_path = os.path.join(model_dir, f'{model_ticker}_Close_Model.keras')
-    
-    # Get the last date in the data
+
     last_date_in_data = hist['date'].max()
-    
-    # Check if model exists and if there is new data to train on
-    if os.path.exists(model_path):
-        
-        model: SequentialType = load_model(model_path)
-        
+
+    # Load from cache or disk (avoids re-deserialising on every ticker call)
+    if model_path in _model_cache:
+        model: SequentialType = _model_cache[model_path]
+        logger.info(f"Loaded model for {ticker} from in-memory cache")
+    elif os.path.exists(model_path):
+        model = load_model(model_path)
+        _model_cache[model_path] = model
+        logger.info(f"Loaded model for {ticker} from disk and cached")
     else:
-        logger.info(f"No existing model found for ticker: {ticker} or no metadata. Creating and training a new model.")
-        model: SequentialType = train_new_model(X_train, y_train, model_dir, model_path, hparams, sanitized_ticker)
+        logger.info(f"No existing model for {ticker}. Training new model.")
+        model = train_new_model(X_train, y_train, model_dir, model_path, hparams, sanitized_ticker)
+        _model_cache[model_path] = model
 
     # Make predictions
     last_sequence = hist['close'].values[-seq_length:].reshape((1, seq_length, 1))
     next_week_predictions = []
     next_month_predictions = []
 
-    # Predict for the next week
     with tf.device('/GPU:0'):
         for _ in range(7):
             next_week_prediction = model(last_sequence, training=False)[0][0].numpy()
@@ -877,19 +880,48 @@ def predict_close_value(hist, hparams, ticker):
             next_month_predictions.append(next_month_prediction)
             last_sequence = np.append(last_sequence[:, 1:, :], [[[next_month_prediction]]], axis=1)
 
-    # Inverse transform predictions back to original scale
-    next_week_predictions = scaler.inverse_transform(np.array(next_week_predictions).reshape(-1, 1)).flatten()
-    next_month_predictions = scaler.inverse_transform(np.array(next_month_predictions).reshape(-1, 1)).flatten()
+    next_week_predictions = scaler.inverse_transform(
+        np.array(next_week_predictions).reshape(-1, 1)).flatten()
+    next_month_predictions = scaler.inverse_transform(
+        np.array(next_month_predictions).reshape(-1, 1)).flatten()
 
-    # Save predictions to the database
     save_predictions_to_db(ticker, last_date_in_data, next_month_predictions)
 
-    # Clear session and free up GPU resources
-    clear_session()
-    del model
-    gc.collect()
-
     return next_week_prediction, next_month_prediction, next_week_predictions.tolist(), next_month_predictions.tolist()
+
+
+def apply_sentiment_adjustment(
+    next_week_pred: float,
+    next_month_pred: float,
+    current_price: float,
+    ticker: str,
+) -> tuple[float, float, float]:
+    """
+    Fetch the latest news-sentiment score for *ticker* and apply a small
+    linear adjustment to the LSTM predictions.
+
+    The adjustment is intentionally conservative: at a compound score of ±1.0
+    the week prediction shifts by ±SENTIMENT_WEEK_WEIGHT of the current price.
+
+    Returns (adjusted_week, adjusted_month, sentiment_score).
+    """
+    try:
+        score = db_queries.get_latest_sentiment_score(ticker)
+    except Exception as exc:
+        logger.warning(f"Could not fetch sentiment for {ticker}: {exc}")
+        score = 0.0
+
+    if score == 0.0 or current_price <= 0:
+        return next_week_pred, next_month_pred, score
+
+    week_adj = score * SENTIMENT_WEEK_WEIGHT * current_price
+    month_adj = score * SENTIMENT_MONTH_WEIGHT * current_price
+
+    return (
+        round(next_week_pred + week_adj, 4),
+        round(next_month_pred + month_adj, 4),
+        score,
+    )
 
 
 # Function to fetch data and run predictions for each ticker
@@ -964,17 +996,23 @@ def fetch_data(hparams: dict):
             if not PREDICTION:
                 next_week_prediction = next_month_prediction = 0
                 next_month_predictions = next_week_predictions = []
+                sentiment_score = 0.0
             else:
                 logger.info(f"Generating predictions for {ticker}")
                 next_week_prediction, next_month_prediction, next_week_predictions, next_month_predictions = predict_close_value(hist, hparams, ticker)
-                logger.info(f"Predictions generated for {ticker}")
-
-            # Add the plot_model_vs_actual function here
-
+                # Apply news-sentiment bias on top of LSTM prediction
+                next_week_prediction, next_month_prediction, sentiment_score = apply_sentiment_adjustment(
+                    next_week_prediction, next_month_prediction, current_price, ticker
+                )
+                logger.info(
+                    f"Predictions for {ticker}: week={next_week_prediction:.2f}  "
+                    f"month={next_month_prediction:.2f}  sentiment={sentiment_score:+.3f}"
+                )
 
             stocks_df.at[index, 'Current Value'] = round(current_value, 2)
             stocks_df.at[index, 'Next Week Prediction'] = round(next_week_prediction - 1, 2)
             stocks_df.at[index, 'Next Month Prediction'] = round(next_month_prediction - 1, 2)
+            stocks_df.at[index, 'Sentiment Score'] = round(sentiment_score, 3)
             stocks_df.at[index, 'Z-Score'] = round(z_score, 2)
             stocks_df.at[index, 'Overbought_Oversold'] = round(overbought_oversold, 2)
             stocks_df.at[index, 'Overbought_Oversold_Value'] = round(overbought_oversold + 1, 2)
@@ -1636,13 +1674,18 @@ def daily_job():
             )
             """
             logger.info("Job completed" + Fore.RESET)
-
             break
-    
+
         except Exception as ex:
             logger.error(Fore.RED + "Error occured in Close job.\n" + Fore.RESET)
             logger.error(ex)
             break
+
+        finally:
+            # Release all cached Keras models and free GPU memory once the run ends
+            _model_cache.clear()
+            clear_session()
+            gc.collect()
 
 def setup_scheduler():
     schedule.every().day.at("06:08").do(daily_job)

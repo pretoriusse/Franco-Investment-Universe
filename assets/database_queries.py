@@ -4,7 +4,7 @@ from sqlalchemy import create_engine, text, func, or_
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.dialects.postgresql import insert
 
-from assets.models import TechnicalAnalysis
+from assets.models import TechnicalAnalysis, NewsSentiment
 from assets.models import StockDataHistory, ShowCommodities, AdjRuns, ZARUSD, ZARGood, ZARBad, Stock, Industry, SubIndustry, Dividend, Commodity, CloseRuns
 from assets.const import DB_PARAMS
 try:
@@ -690,5 +690,75 @@ def insert_technical_analysis_batch(batch):
     except SQLAlchemyError as e:
         logger.error(f"Error inserting technical analysis batch: {e}")
         session.rollback()
+    finally:
+        session.close()
+
+
+def insert_sentiment_batch(batch: list[dict]) -> None:
+    """Upsert a list of daily sentiment records into news_sentiment."""
+    session = Session()
+    try:
+        stmt = insert(NewsSentiment).values(batch)
+        stmt = stmt.on_conflict_do_update(
+            index_elements=['ticker', 'date'],
+            set_={
+                'sentiment_score': stmt.excluded.sentiment_score,
+                'article_count': stmt.excluded.article_count,
+                'positive_count': stmt.excluded.positive_count,
+                'negative_count': stmt.excluded.negative_count,
+                'neutral_count': stmt.excluded.neutral_count,
+            }
+        )
+        session.execute(stmt)
+        session.commit()
+    except SQLAlchemyError as e:
+        logger.error(f"Error inserting sentiment batch: {e}")
+        session.rollback()
+    finally:
+        session.close()
+
+
+def fetch_sentiment_for_ticker(ticker: str, days: int = 60) -> 'pd.DataFrame':
+    """Return the last *days* of sentiment rows for *ticker* ordered ascending.
+
+    Columns: date, sentiment_score, article_count.
+    Returns an empty DataFrame if no records exist yet.
+    """
+    session = Session()
+    try:
+        from datetime import date as date_cls, timedelta
+        cutoff = date_cls.today() - timedelta(days=days)
+        rows = (
+            session.query(
+                NewsSentiment.date,
+                NewsSentiment.sentiment_score,
+                NewsSentiment.article_count,
+            )
+            .filter(NewsSentiment.ticker == ticker, NewsSentiment.date >= cutoff)
+            .order_by(NewsSentiment.date.asc())
+            .all()
+        )
+        return pd.DataFrame(rows, columns=['date', 'sentiment_score', 'article_count'])
+    except Exception as e:
+        logger.error(f"Error fetching sentiment for {ticker}: {e}")
+        return pd.DataFrame()
+    finally:
+        session.close()
+
+
+def get_latest_sentiment_score(ticker: str) -> float:
+    """Return the most recent sentiment score for *ticker*, or 0.0 if none."""
+    session = Session()
+    try:
+        row = (
+            session.query(NewsSentiment.sentiment_score)
+            .filter(NewsSentiment.ticker == ticker)
+            .order_by(NewsSentiment.date.desc())
+            .first()
+        )
+        return float(row[0]) if row else 0.0
+    except Exception as e:
+        logger.error(f"Error fetching latest sentiment for {ticker}: {e}")
+        return 0.0
     finally:
         session.close()

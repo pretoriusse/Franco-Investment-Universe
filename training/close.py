@@ -215,7 +215,7 @@ def handle_missing_values(df):
     return df
 
 
-def preprocess_data(hist):
+def preprocess_data(hist, ticker: str = ""):
     """Preprocess the historical data."""
     # Remove outliers
     hist = remove_outliers(hist, 'close')
@@ -270,6 +270,19 @@ def preprocess_data(hist):
 
     # Drop NaNs created by indicators and lag features
     hist = hist.dropna()
+
+    # Merge in news-sentiment scores.
+    # Historical rows without a sentiment record default to 0.0 (neutral).
+    try:
+        sentiment_df = db_queries.fetch_sentiment_for_ticker(ticker, days=len(hist) + 30)
+        if not sentiment_df.empty:
+            sentiment_df['date'] = pd.to_datetime(sentiment_df['date'])
+            hist = hist.merge(sentiment_df[['date', 'sentiment_score']], on='date', how='left')
+            hist['sentiment_score'] = hist['sentiment_score'].fillna(0.0)
+        else:
+            hist['sentiment_score'] = 0.0
+    except Exception:
+        hist['sentiment_score'] = 0.0
 
     return hist
 
@@ -575,7 +588,7 @@ def check_and_train_model(ticker, hparams, seq_length=60):
     logger.info(f"Fetched {len(hist)} rows of data for {ticker} from {start_date} to {end_date}.")
 
     # Preprocess data
-    hist = preprocess_data(hist)
+    hist = preprocess_data(hist, ticker=ticker)
 
     # Scale features
     features = ['close', 'MA50', 'MA200', 'RSI',
@@ -584,7 +597,10 @@ def check_and_train_model(ticker, hparams, seq_length=60):
                 'day_of_week', 'month', 'quarter',
                 'lag_1', 'lag_2', 'lag_3',
                 'rolling_mean_5', 'rolling_std_5',
-                'rolling_mean_10', 'rolling_std_10']
+                'rolling_mean_10', 'rolling_std_10',
+                'sentiment_score']    # news-sentiment compound score in [-1, +1]
+    # Keep only features present in hist (sentiment may be absent for some runs)
+    features = [f for f in features if f in hist.columns]
     hist_scaled, scaler = load_and_scale_data(hist[features])
 
     if len(hist_scaled) < seq_length:

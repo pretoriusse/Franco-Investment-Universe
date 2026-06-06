@@ -4,6 +4,28 @@ from sqlalchemy.orm import relationship
 
 Base = declarative_base()
 
+
+class NewsSentiment(Base):
+    """Daily aggregated news-sentiment score per ticker.
+
+    sentiment_score: VADER compound in [-1, +1]; 0.0 = neutral/no news.
+    article_count  : number of news articles scored that day.
+    positive_count : articles with compound > 0.05.
+    negative_count : articles with compound < -0.05.
+    neutral_count  : articles within [-0.05, +0.05].
+    """
+    __tablename__ = 'news_sentiment'
+    __table_args__ = (UniqueConstraint('ticker', 'date', name='uq_sentiment_ticker_date'),)
+
+    id = Column(Integer, primary_key=True)
+    ticker = Column(String(10), ForeignKey('stocks.code'), nullable=False)
+    date = Column(Date, nullable=False)
+    sentiment_score = Column(Float, nullable=False, default=0.0)
+    article_count = Column(Integer, nullable=False, default=0)
+    positive_count = Column(Integer, nullable=False, default=0)
+    negative_count = Column(Integer, nullable=False, default=0)
+    neutral_count = Column(Integer, nullable=False, default=0)
+
 class AdjRuns(Base):
     __tablename__ = 'adj_runs'
     id = Column(Integer, primary_key=True)
