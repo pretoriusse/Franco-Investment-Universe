@@ -62,9 +62,9 @@ def main():
 
     # Fetch and store news sentiment for all tickers after market close
     try:
-        import pandas as pd
-        universe = pd.read_csv('investment_universe.csv')
-        tickers = universe['code'].dropna().tolist() if 'code' in universe.columns else []
+        from assets import database_queries as db_queries
+        universe = db_queries.fetch_stock_and_commodity_universe_from_db()
+        tickers = universe['code'].dropna().tolist()
         if tickers:
             run_daily_sentiment_pipeline(tickers)
     except Exception as e:
