@@ -1,6 +1,6 @@
 import hashlib
 import requests
-from flask import Flask, render_template, redirect, url_for, flash, request, render_template_string, send_file, jsonify
+from flask import Flask, render_template, redirect, url_for, flash, request, send_file, jsonify
 from flask_migrate import Migrate
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -110,22 +110,29 @@ def update_card_details(token):
 
 def send_disabled_email(subject, name, email_address):
     try:
-        # Load the HTML template
         env = Environment(loader=FileSystemLoader('.'))
         template = env.get_template('illigal_email_template.html')
+        html_body = template.render(name=name)
 
-        # Prepare the email message
-        message = MIMEMultipart()
+        message = MIMEMultipart('alternative')
         message['From'] = formataddr(("Stock Bot", EMAIL_ADDRESS))
         message['Subject'] = subject
-        message['To'] =','.join([formataddr((name, email_address))])
-        message['Cc'] = ','.join([
+        message['To'] = formataddr((name, email_address))
+        cc_addresses = [
             formataddr(("Raine Pretorius", 'raine.pretorius1@gmail.com')),
-            formataddr(("Franco Pretorius", 'francopret@gmail.com'))
-        ])
-        
+            formataddr(("Franco Pretorius", 'francopret@gmail.com')),
+        ]
+        message['Cc'] = ', '.join(cc_addresses)
+        message.attach(MIMEText(html_body, 'html'))
+
+        all_recipients = [email_address, 'raine.pretorius1@gmail.com', 'francopret@gmail.com']
+        with smtplib.SMTP(SERVER_ADDRESS, SERVER_PORT) as server:
+            server.starttls()
+            server.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
+            server.sendmail(EMAIL_ADDRESS, all_recipients, message.as_string())
+        logger.info(f"Disabled-user notification sent to {email_address}")
     except Exception as ex:
-        logger.error(f"Failed to send emails: {ex}")
+        logger.error(f"Failed to send disabled-user email: {ex}")
 
 def update_subscription_paid_status(user_id, end_date, status):
     """
@@ -234,7 +241,7 @@ def login():
             # Log in the user
             login_user(user)
             flash('Login successful!', 'success')
-            if int(user.subscription_id) == 2:
+            if user.subscription_id and int(user.subscription_id) == 2:
                 return redirect(url_for('reports'))
 
             return redirect(url_for('home'))
@@ -312,35 +319,45 @@ def payment_cancel():
 def payment_notify():
     try:
         data = request.form.to_dict()
-        print(f'Payment notification received: {data}')
-        
-        # Extract relevant data
-        user_email = data.get('email_address')
-        payment_status = data.get('payment_status')
-        amount_gross = data.get('amount_gross')
+        logger.info('Payment notification received')
 
-        # Use the scoped session to fetch the user
+        # Verify PayFast IPN signature to prevent forged notifications
+        received_signature = data.pop('signature', None)
+        expected_signature = generate_signature(data, Config.PAYFAST_PASSPHRASE)
+        if received_signature != expected_signature:
+            logger.warning('PayFast IPN signature mismatch — request rejected')
+            return 'Invalid signature', 400
+
+        payment_status = data.get('payment_status')
+        user_email = data.get('email_address')
+
+        m_payment_id = data.get('m_payment_id')
+        if not m_payment_id:
+            logger.error('IPN missing m_payment_id field')
+            return 'Bad request', 400
+        user_id = m_payment_id.split('_')[-1]
+
         with Session() as session:
-            user_id = data.get('m_payment_id').split('_')[-1]
             user = session.query(Subscribers).filter_by(id=user_id).first()
-            
+
             if not user:
-                print(f"User with email {user_email} not found.")
+                logger.error(f"IPN: user id={user_id} (email={user_email}) not found")
                 return 'Error: User not found', 404
-            
-            # Update user's subscription status if the payment is complete
+
             if payment_status == 'COMPLETE':
                 user.subscription_paid = True
                 user.token = data.get('token')
-                user.subscription_date = datetime.strptime(data.get('billing_date'), '%Y-%m-%d').date()
+                billing_date_str = data.get('billing_date')
+                if billing_date_str:
+                    user.subscription_date = datetime.strptime(billing_date_str, '%Y-%m-%d').date()
                 session.commit()
-                print(f"Updated subscription status for {user.email}.")
+                logger.info(f"Subscription activated for {user.email}")
             else:
-                print(f"Payment status is {payment_status}, not updating subscription.")
+                logger.info(f"IPN payment_status={payment_status!r}, no action taken")
 
         return 'OK'
     except Exception as e:
-        print(f"Error handling payment notification: {str(e)}")
+        logger.error(f"Error handling payment notification: {e}")
         return 'Error', 400
 
 # Manage subscription route
@@ -432,13 +449,10 @@ def show_report(report_id, report_type):
     else:
         html_path = report.html_detailed_path
     
-    # Read the content of the HTML file
     try:
-        with open(html_path, 'r') as file:
-            content = file.read()
-        return render_template_string(content)  # Dynamically render HTML content
+        return send_file(html_path, mimetype='text/html')
     except FileNotFoundError:
-        flash(f"Report file not found!", 'danger')
+        flash("Report file not found!", 'danger')
         return redirect(url_for('reports'))
     
 @app.route('/download_report/<int:report_id>/<string:report_type>')
@@ -495,20 +509,20 @@ def track_web(web_hash):
         return jsonify({"error": str(e)}), 500
     
 @app.route('/disable-user/<int:user_id>', methods=['POST'])
-@csrf.exempt
+@login_required
 def disable_illegal_user(user_id):
+    if not current_user.is_admin:
+        return jsonify({"error": "Forbidden"}), 403
     try:
-        # Lookup the email_hash in the database
-        subscriber:Subscribers = Subscribers.query.filter_by(id=user_id).first()
-
-        if subscriber and not subscriber.email in ['raine.pretorius1@gmail.com', 'raine.pretorius9@gmail.com', 'rudieprettie@gmail.com', 'francopret@gmail.com']:
-            # Log that the email was opened
-            subscriber.black_listed = True
-            db.session.commit()
-            return jsonify({"message": "User has been blacklisted!"}), 200
-        else:
-            return jsonify({"error": "User not found"}), 200
-
+        subscriber: Subscribers = Subscribers.query.filter_by(id=user_id).first()
+        if not subscriber:
+            return jsonify({"error": "User not found"}), 404
+        if subscriber.is_admin:
+            return jsonify({"error": "Cannot blacklist an admin"}), 403
+        subscriber.black_listed = True
+        db.session.commit()
+        logger.info(f"Admin {current_user.email} blacklisted user {subscriber.email}")
+        return jsonify({"message": "User has been blacklisted!"}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
  
@@ -524,4 +538,5 @@ def portfolio():
 
 # Main entry point
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', debug=True, port=5003)
+    debug = app.config.get('DEBUG', False)
+    app.run(host='0.0.0.0', debug=debug, port=5003)

@@ -2,13 +2,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, SelectField, EmailField
 from wtforms.validators import DataRequired, Email, EqualTo
 from .models import Subscriptions
-from assets import config
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 
-engine = create_engine(config.Config.SQLALCHEMY_DATABASE_URI)
-Session = sessionmaker(bind=engine)
-session = Session()
 
 class RegistrationForm(FlaskForm):
     email = EmailField('Email', validators=[DataRequired(), Email()])
