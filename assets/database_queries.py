@@ -1,3 +1,13 @@
+"""Canonical query layer shared by the report and data pipelines.
+
+All reusable database access for the ``sharesdata`` DB (market data, runs,
+commodities, dividends, sentiment) and the ``webapp`` DB (subscribers) lives
+here. Every helper opens its own short-lived session, commits or rolls back,
+and always closes the session — callers never manage transactions.
+
+Convention: read helpers return a pandas DataFrame (empty on error) or a
+scalar/None; write helpers log and roll back on failure instead of raising.
+"""
 import pandas as pd
 import logging
 from sqlalchemy import create_engine, text, func, or_
@@ -13,7 +23,6 @@ except ImportError:
     from webapp.models import Subscribers
 from sqlalchemy.exc import SQLAlchemyError
 import numpy as np
-from sqlalchemy.dialects.postgresql import insert as pg_insert
 from datetime import date
 from .const import DB_PARAMS_WEBAPP
 
@@ -22,18 +31,24 @@ from .const import DB_PARAMS_WEBAPP
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-# Configure the database engine and session
+# Engine/session for the sharesdata DB (market data)
 engine = create_engine(
     f"postgresql://{DB_PARAMS['user']}:{DB_PARAMS['password']}@{DB_PARAMS['host']}:{DB_PARAMS['port']}/{DB_PARAMS['dbname']}"
 )
 Session = sessionmaker(bind=engine)
 
+# Engine/session for the webapp DB (subscribers, subscriptions)
 webapp_engine = create_engine(
     f"postgresql://{DB_PARAMS_WEBAPP['user']}:{DB_PARAMS_WEBAPP['password']}@{DB_PARAMS_WEBAPP['host']}:{DB_PARAMS_WEBAPP['port']}/{DB_PARAMS_WEBAPP['dbname']}"
 )
 WebApp_Session = sessionmaker(bind=webapp_engine)
 
 def fetch_stock_universe_from_db():
+    """Return the equity universe (commodities excluded) as a DataFrame.
+
+    Columns: code, share_name, industry, sub_industry, rsi_comparison_market,
+    rsi_comparison_sector, commodity. Empty DataFrame on error.
+    """
     session = Session()
     try:
         stocks = session.query(
@@ -59,6 +74,7 @@ def fetch_stock_universe_from_db():
         session.close()
 
 def fetch_stock_and_commodity_universe_from_db():
+    """Return the full universe — equities and commodity futures — as a DataFrame."""
     session = Session()
     try:
         stocks = session.query(
@@ -84,6 +100,7 @@ def fetch_stock_and_commodity_universe_from_db():
         session.close()
 
 def fetch_commodity_universe_from_db():
+    """Return only the commodity futures rows of the universe as a DataFrame."""
     session = Session()
     try:
         commodities = session.query(
@@ -109,6 +126,11 @@ def fetch_commodity_universe_from_db():
         session.close()
 
 def get_ticker_from_db(ticker: str):
+    """Return all OHLCV history for *ticker*, oldest first.
+
+    Note: matching uses ``ILIKE %ticker%``, so a short code can match more
+    than one ticker (e.g. 'SOL' also matches 'SOLB'). Pass the full code.
+    """
     session = Session()
     try:
         ticker_data = session.query(
@@ -137,6 +159,11 @@ def get_ticker_from_db(ticker: str):
         session.close()
 
 def get_ticker_from_db_with_date_select(ticker: str, start_date: str, end_date: str):
+    """Return OHLCV history for *ticker* between two ISO dates, oldest first.
+
+    Same ILIKE matching caveat as ``get_ticker_from_db``. Returns an empty
+    DataFrame when nothing matches or the query fails.
+    """
     session = Session()
     try:
         ticker_data = session.query(
@@ -166,6 +193,12 @@ def get_ticker_from_db_with_date_select(ticker: str, start_date: str, end_date: 
         session.close()
 
 def get_commodities_from_db(ticker: str):
+    """Return ZAR-converted OHLCV history for a commodity ticker, oldest first.
+
+    Rows are ordered ascending to match ``get_ticker_from_db*``: consumers
+    compute rolling indicators and read ``iloc[-1]`` as "latest", which broke
+    when this query previously returned newest-first.
+    """
     session = Session()
     try:
         commodity_data = session.query(
@@ -178,7 +211,7 @@ def get_commodities_from_db(ticker: str):
             ShowCommodities.commodity_zar_adj_close.label("Adj Close"),
             ShowCommodities.volume
         ).filter(ShowCommodities.ticker.ilike(f"%{ticker.replace('%', '')}%"))\
-        .order_by(ShowCommodities.date.desc()).all()
+        .order_by(ShowCommodities.date.asc()).all()
 
         df = pd.DataFrame(commodity_data)
         if df.empty:
@@ -194,6 +227,7 @@ def get_commodities_from_db(ticker: str):
         session.close()
 
 def fetch_latest_date_for_ticker(ticker: str):
+    """Return the most recent stored trading date for *ticker*, or None."""
     session = Session()
     try:
         result = session.query(func.max(StockDataHistory.date)).filter(StockDataHistory.ticker == ticker).scalar()
@@ -205,11 +239,17 @@ def fetch_latest_date_for_ticker(ticker: str):
         session.close()
 
 def insert_stock_data_history_batch(batch, on_conflict_update=False):
+    """Bulk-insert OHLCV rows into stock_data_history.
+
+    With ``on_conflict_update=True`` an existing (ticker, date) row is
+    updated in place (PostgreSQL upsert); otherwise duplicates raise and the
+    whole batch is rolled back.
+    """
     session = Session()
     try:
         if on_conflict_update:
             # Use PostgreSQL-specific upsert functionality
-            insert_stmt = pg_insert(StockDataHistory).values(batch)
+            insert_stmt = insert(StockDataHistory).values(batch)
             
             # Define how to resolve conflicts: update the rows with new values if conflict occurs
             upsert_stmt = insert_stmt.on_conflict_do_update(
@@ -240,6 +280,13 @@ def insert_stock_data_history_batch(batch, on_conflict_update=False):
         session.close()
 
 def update_zar_periods():
+    """Rebuild the ZAR good/bad period tables from the overbought/oversold series.
+
+    Walks the ZAR/USD history in date order and collapses consecutive days of
+    the same sign into [start, end] periods: positive readings (weakening
+    rand) become 'bad' periods, negative ones 'good'. Days at exactly zero
+    extend whichever period is currently open.
+    """
     session = Session()
     try:
         # Fetch all overbought/oversold values
@@ -247,34 +294,33 @@ def update_zar_periods():
                         .filter(ZARUSD.overbought_oversold.isnot(None))\
                         .order_by(ZARUSD.date).all()
 
-        current_period:list = []
+        current_period: list = []  # [start_date, end_date, 'good'|'bad']
         current_type = None
 
-        for date, overbought_oversold in zar_data:
+        for row_date, overbought_oversold in zar_data:
             try:
                 if overbought_oversold > 0:
                     if current_type != 'bad':
                         if current_period:
                             insert_period(session, current_period)
-                        current_period = [date, date, 'bad']
+                        current_period = [row_date, row_date, 'bad']
                         current_type = 'bad'
                     else:
-                        current_period[1] = date
+                        current_period[1] = row_date
                 elif overbought_oversold < 0:
                     if current_type != 'good':
                         if current_period:
                             insert_period(session, current_period)
-                        current_period = [date, date, 'good']
+                        current_period = [row_date, row_date, 'good']
                         current_type = 'good'
                     else:
-                        current_period[1] = date
+                        current_period[1] = row_date
                 else:
-                    if current_type == 'bad':
-                        current_period[1] = date
-                    elif current_type == 'good':
-                        current_period[1] = date
+                    # Zero reading: extend the currently open period, if any.
+                    if current_type in ('bad', 'good'):
+                        current_period[1] = row_date
             except Exception as e:
-                logger.error(f"Error processing overbought_oversold for date {date}: {e}")
+                logger.error(f"Error processing overbought_oversold for date {row_date}: {e}")
 
         if current_period:
             insert_period(session, current_period)
@@ -288,15 +334,17 @@ def update_zar_periods():
         session.close()
 
 def insert_period(session, period):
+    """Merge a [start_date, end_date, type] period into ZARGood or ZARBad."""
     start_date, end_date, period_type = period
     if period_type == 'good':
         period_entry = ZARGood(start_date=start_date, end_date=end_date)
     else:
-        period_entry = ZARBad(start_date=start_date,         end_date=end_date)
+        period_entry = ZARBad(start_date=start_date, end_date=end_date)
     session.merge(period_entry)
     session.commit()
 
 def fetch_latest_dividend_date(ticker: str):
+    """Return the date of the most recent stored dividend for *ticker*, or None."""
     session = Session()
     try:
         latest_date = session.query(Dividend.date).filter(Dividend.ticker == ticker).order_by(Dividend.date.desc()).first()
@@ -310,6 +358,7 @@ def fetch_latest_dividend_date(ticker: str):
         session.close()
 
 def insert_dividends_batch(batch):
+    """Upsert dividend rows keyed on (date, ticker)."""
     session = Session()
     try:
         stmt = insert(Dividend).values(batch)
@@ -326,6 +375,7 @@ def insert_dividends_batch(batch):
         session.close()
 
 def fetch_latest_commodity_date(ticker):
+    """Return the most recent stored date for a commodity ticker, or None."""
     session = Session()
     try:
         result = session.query(func.max(Commodity.date)).filter(Commodity.ticker == ticker).scalar()
@@ -337,12 +387,17 @@ def fetch_latest_commodity_date(ticker):
         session.close()
 
 def insert_commodities_batch(data_list, on_conflict_update=False):
+    """Upsert commodity OHLCV rows keyed on (date, ticker).
+
+    Note: the ``on_conflict_update`` flag is currently ignored — conflicts
+    always update the existing row.
+    """
     session = Session()
     try:
         # Prepare the insert statement with ON CONFLICT handling
         stmt = insert(Commodity).values(data_list)
-        
-        # Handling duplicates by ignoring if the date and ticker already exist
+
+        # Update High/Low/Close/Volume if the (date, ticker) row already exists
         stmt = stmt.on_conflict_do_update(
             index_elements=['date', 'ticker'],
             set_=dict(High=stmt.excluded.High, Low=stmt.excluded.Low, Close=stmt.excluded.Close, Volume=stmt.excluded.Volume)
@@ -359,6 +414,11 @@ def insert_commodities_batch(data_list, on_conflict_update=False):
         session.close()
 
 def fetch_latest_date_for_zar(ticker: str):
+    """Return the most recent stored ZAR/USD date, or None.
+
+    The *ticker* argument is unused (the table only holds ZAR/USD) but kept
+    for backward compatibility with existing callers.
+    """
     session = Session()
     try:
         result = session.query(func.max(ZARUSD.date)).scalar()
@@ -370,6 +430,7 @@ def fetch_latest_date_for_zar(ticker: str):
         session.close()
 
 def insert_zar_usd_batch(batch):
+    """Upsert ZAR/USD daily rows keyed on date, dropping records without a date."""
     session = Session()
     try:
         # Clean the batch: Remove any records with null or invalid date values
@@ -407,6 +468,7 @@ def insert_zar_usd_batch(batch):
         session.close()
 
 def fetch_all_zar_usd():
+    """Return all (date, overbought_oversold) ZAR/USD rows in date order."""
     session = Session()
     try:
         return session.query(ZARUSD.date, ZARUSD.overbought_oversold).filter(ZARUSD.overbought_oversold.isnot(None)).order_by(ZARUSD.date).all()
@@ -417,6 +479,7 @@ def fetch_all_zar_usd():
         session.close()
 
 def insert_zar_good_period(period):
+    """Upsert a (start_date, end_date, _) tuple into the ZAR good-period table."""
     session = Session()
     try:
         start_date, end_date, _ = period
@@ -434,6 +497,7 @@ def insert_zar_good_period(period):
         session.close()
 
 def insert_zar_bad_period(period):
+    """Upsert a (start_date, end_date, _) tuple into the ZAR bad-period table."""
     session = Session()
     try:
         start_date, end_date, _ = period
@@ -451,6 +515,12 @@ def insert_zar_bad_period(period):
         session.close()
 
 def insert_prediction(date, code, adj_close=None, close=None):
+    """Upsert one prediction row keyed on (date, code).
+
+    Passing only one of *adj_close*/*close* preserves the other column's
+    existing value (COALESCE in the ON CONFLICT clause), so the close and
+    adjusted-close jobs can write independently.
+    """
     session = Session()
     try:
         # Convert numpy.float32 to Python float
@@ -476,6 +546,11 @@ def insert_prediction(date, code, adj_close=None, close=None):
         session.close()
 
 def upload_adjusted_close(file_path):
+    """Load a daily adjusted-close run CSV and insert its rows into adj_runs.
+
+    The CSV is the snapshot written by ``adjusted_close_report.daily_job``;
+    ``run_date`` is stamped with today's date on every row.
+    """
     session = Session()
     try:
         # Load data from CSV into DataFrame
@@ -542,6 +617,10 @@ def upload_adjusted_close(file_path):
         session.close()
 
 def upload_close_runs(file_path):
+    """Load a daily close run CSV and insert its rows into close_runs.
+
+    Counterpart of ``upload_adjusted_close`` for ``close_report.daily_job``.
+    """
     session = Session()
     try:
         # Load data from CSV into DataFrame
@@ -597,10 +676,16 @@ def upload_close_runs(file_path):
         session.close()
 
 def close_session():
+    """Legacy no-op kept for callers that still invoke it.
+
+    Every helper in this module opens and closes its own session, so there is
+    no shared session to close; this creates a fresh one and closes it again.
+    """
     session = Session()
     session.close()
 
 def fetch_active_subscribers():
+    """Return Subscribers whose subscription is paid and not yet expired."""
     session = WebApp_Session()
     try:
         # Query for subscribers where subscription is paid and the expiration date is in the future or today
@@ -661,6 +746,7 @@ def update_subscriber(subscriber_id, update_data):
         session.close()
 
 def insert_technical_analysis_batch(batch):
+    """Upsert daily technical-analysis rows keyed on (ticker, date)."""
     session = Session()
     try:
         stmt = insert(TechnicalAnalysis).values(batch)

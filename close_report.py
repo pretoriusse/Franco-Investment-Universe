@@ -1,3 +1,18 @@
+"""Daily close-price report pipeline.
+
+Entry point: ``daily_job()`` (called by ``main.py`` at 06:00, or directly via
+``python close_report.py``). For every ticker in the stock universe the job:
+
+1. Loads OHLCV history from the ``sharesdata`` database.
+2. Computes technical indicators (moving averages, Bollinger bands, Z-score, RSI).
+3. Runs the per-ticker LSTM model to predict the close price 7 and 30 days out
+   (training a model on the fly if none exists on disk).
+4. Renders price/volume/indicator charts to ``plots/`` and base64-encodes them.
+5. Uploads the run results to the ``close_runs`` table and renders the summary
+   and detailed HTML/PDF reports for subscribers.
+
+The adjusted-close twin of this script is ``adjusted_close_report.py``.
+"""
 import os
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # Suppress TensorFlow warnings
@@ -42,7 +57,6 @@ from assets import database_queries as db_queries  # Importing database queries
 from PyPDF2 import PdfReader, PdfWriter
 from sqlalchemy.exc import SQLAlchemyError
 import boto3
-import hashlib
 import subprocess
 import matplotlib
 
@@ -129,19 +143,20 @@ def generate_email_hash(email):
 
 
 def sanitize_ticker(ticker):
-    # Replace or remove characters that are not alphanumeric or dot
+    """Strip every character that is not alphanumeric or a dot (keeps '.JO')."""
     sanitized_ticker = re.sub(r'[^A-Za-z0-9.]', '', ticker)
     return sanitized_ticker
 
 
 def sanitize_ticker_search(ticker):
-    # Replace or remove characters that are not alphanumeric or underscore
+    """Strip every character that is not alphanumeric or an underscore."""
     sanitized_ticker = re.sub(r'[^A-Za-z0-9_]', '', ticker)
     return sanitized_ticker
 
 
 # Image Functions
 def resize_image(image_path, output_path, max_width=800):
+    """Resize an image down to *max_width* pixels, preserving aspect ratio."""
     with Image.open(image_path) as img:
         width_percent = (max_width / float(img.size[0]))
         height = int((float(img.size[1]) * float(width_percent)))
@@ -150,6 +165,7 @@ def resize_image(image_path, output_path, max_width=800):
 
 
 def compress_image(image_path, output_path, quality=75):
+    """Save a JPEG-compressed copy of an image (alpha channel is flattened)."""
     with Image.open(image_path) as img:
         # Convert to RGB if image has an alpha channel
         if img.mode == 'RGBA':
@@ -158,26 +174,34 @@ def compress_image(image_path, output_path, quality=75):
 
 
 def convert_to_jpeg(image_path, output_path):
+    """Convert a PNG (or any Pillow-readable image) to an 85%-quality JPEG."""
     with Image.open(image_path) as img:
         rgb_img = img.convert('RGB')  # PNG to JPEG conversion
         rgb_img.save(output_path, format='JPEG', quality=85)
 
 
 def process_image(img_path):
+    """Write resized/compressed variants of a chart PNG next to the original.
+
+    Note: the *original* path is returned, so the reports still embed the
+    full-size PNG; the resized/compressed copies are only kept on disk.
+    """
     resized_path = img_path.replace('.png', '_resized.png')
     compressed_path = img_path.replace('.png', '_compressed.jpg')
-    
+
     resize_image(img_path, resized_path)
     compress_image(resized_path, compressed_path)
     return img_path
 
 
 def encode_image(image_path):
+    """Return the base64 string of an image file (raises if the file is missing)."""
     with open(image_path, 'rb') as image_file:
         return base64.b64encode(image_file.read()).decode('utf-8')
 
 
 def encode_image_to_base64(image_path):
+    """Like ``encode_image`` but returns ``None`` instead of raising when missing."""
     try:
         with open(image_path, "rb") as image_file:
             return base64.b64encode(image_file.read()).decode('utf-8')
@@ -186,7 +210,7 @@ def encode_image_to_base64(image_path):
 
 
 def generate_pdf_with_password(input_html, output_pdf, user_password, owner_password='0306245353082'):
-    # Step 1: Generate PDF using wkhtmltopdf
+    """Render *input_html* to PDF and encrypt it with qpdf (printing disabled)."""
     temp_output_pdf = output_pdf.split('.pdf')[0] + '_temp.pdf'
     options = {
         'page-size': 'Letter',
@@ -217,6 +241,7 @@ def generate_pdf_with_password(input_html, output_pdf, user_password, owner_pass
 
 
 def calculate_moving_averages(data, short_window=24, long_window=55):
+    """Add MA24/MA55 columns plus the MA-ratio overbought/oversold indicator."""
     data['MA24'] = data['close'].rolling(window=short_window).mean()
     data['MA55'] = data['close'].rolling(window=long_window).mean()
     data['Overbought_Oversold'] = ((data['MA24'] / data['MA55']) - 1).round(2)
@@ -225,6 +250,7 @@ def calculate_moving_averages(data, short_window=24, long_window=55):
 
 
 def calculate_bollinger_bands(data, window=20):
+    """Add Bollinger_High/Bollinger_Low columns (rolling mean ± 2 std)."""
     rolling_mean = data['close'].rolling(window=window).mean()
     rolling_std = data['close'].rolling(window=window).std()
     data['Bollinger_High'] = rolling_mean + (rolling_std * 2)
@@ -233,6 +259,7 @@ def calculate_bollinger_bands(data, window=20):
 
 
 def calculate_z_score(data, window=20):
+    """Add a Z-Score column: deviation of close from its rolling mean in stds."""
     rolling_mean = data['close'].rolling(window=window).mean()
     rolling_std = data['close'].rolling(window=window).std()
     data['Z-Score'] = ((data['close'] - rolling_mean) / rolling_std).round(2)
@@ -240,6 +267,7 @@ def calculate_z_score(data, window=20):
 
 
 def rsi_calculate(data, window=14):
+    """Return the classic Relative Strength Index series for the close column."""
     delta = data['close'].diff()
     gain = delta.where(delta > 0, 0).fillna(0)
     loss = -delta.where(delta < 0, 0).fillna(0)
@@ -251,19 +279,21 @@ def rsi_calculate(data, window=14):
 
 
 def calculate_rsi_close_for_all(data, windows=[14]):
+    """Add an ``RSI_{window}`` column for each requested RSI window."""
     for window in windows:
         data[f'RSI_{window}'] = rsi_calculate(data, window)
     return data
 
 
 def make_dates_timezone_naive(data):
-    # Convert all datetime objects to timezone-naive
+    """Strip timezone info from the 'date' column so dates compare cleanly."""
     data.loc[:, 'date'] = pd.to_datetime(data['date']).dt.tz_localize(None)
     return data
 
 
 # Plotting
 def plot_price_and_bollinger_bands_close(data, ticker):
+    """Plot 2 years of close price with MA24/MA55 and Bollinger bands to plots/{ticker}/adj_bollinger.png."""
     data = data.dropna(subset=['Bollinger_High', 'Bollinger_Low', 'close'])  # Drop rows with NaN values
     data.loc[:, 'date'] = pd.to_datetime(data['date'])
     end_date = data['date'].max()
@@ -309,6 +339,7 @@ def plot_price_and_bollinger_bands_close(data, ticker):
 
 
 def plot_overbought_oversold_close(data, ticker, name):
+    """Plot the MA-ratio overbought/oversold indicator (green above 0, red below)."""
     data = make_dates_timezone_naive(data)
     data.loc[:, 'date'] = pd.to_datetime(data['date'])
     end_date = data['date'].max()
@@ -348,6 +379,11 @@ def plot_overbought_oversold_close(data, ticker, name):
 
 
 def plot_overbought_oversold_zar(data, ticker):
+    """Overbought/oversold plot for the ZAR/USD rate.
+
+    Colours are inverted relative to equities: a rising ZAR/USD number means a
+    weaker rand, so positive readings are shaded red and negative ones green.
+    """
     data.loc[:, 'date'] = pd.to_datetime(data['date'])
     end_date = data['date'].max()
     start_date = end_date - pd.DateOffset(years=2)
@@ -386,6 +422,7 @@ def plot_overbought_oversold_zar(data, ticker):
 
 
 def plot_stock_close_last_two_years(unscaled_close, ticker, next_week_predictions, next_month_predictions, name):
+    """Plot the last 3 months of close prices with the 7- and 30-day prediction paths."""
     logger.info(f"Starting close to plot stock data for the last year for ticker: {ticker}")
     plt.figure(figsize=(16, 8))
 
@@ -482,6 +519,11 @@ def plot_stock_close_last_two_years(unscaled_close, ticker, next_week_prediction
 
 
 def plot_model_vs_actual(model, X_train, y_train, X_test, y_test, debug_plot_path, scaler=None, focus_last_n=200):
+    """Diagnostic plot: predictions vs actuals, residuals and their distribution.
+
+    Only used when debugging model quality; saves a 4-panel figure to
+    *debug_plot_path* annotated with MSE/MAE/R² for the test split.
+    """
     logger.info(f"Starting close to plot model vs actual data with enhanced insights.")
 
     # Generate predictions for training and testing sets
@@ -571,6 +613,7 @@ def plot_model_vs_actual(model, X_train, y_train, X_test, y_test, debug_plot_pat
 
 
 def plot_volume_data_last_two_years(unscaled_volume, ticker, next_week_volume_predictions=[], next_month_volume_predictions=[], name=''):
+    """Plot the last 3 months of traded volume to plots/{ticker}/volume.png."""
     logger.info(f"Starting close to plot volume data for the last year for ticker: {ticker}")
     plt.figure(figsize=(16, 8))
 
@@ -634,6 +677,12 @@ def plot_volume_data_last_two_years(unscaled_volume, ticker, next_week_volume_pr
 
 # Processing data
 def process_ticker_close(ticker, commodity, name):
+    """Build indicator CSVs and Bollinger/overbought-oversold charts for one ticker.
+
+    Pulls ~4 years of history from the DB (or the commodities view when
+    *commodity* is truthy), computes MA/Bollinger/Z-score/RSI columns and
+    writes the intermediate frames under ``data/{ticker}/``.
+    """
     os.makedirs(os.path.join('data', ticker.replace('.JO', '')), exist_ok=True)
     # Fetching data for the specified period
     starttime_dt = datetime.now() - timedelta(days=1440)
@@ -670,29 +719,30 @@ def process_ticker_close(ticker, commodity, name):
 
 
 def process_zar_bollinger():
+    """Download ~4 years of ZAR/USD rates and render its Bollinger/momentum charts."""
     ticker = "ZAR"
     os.makedirs(os.path.join('data', ticker), exist_ok=True)
     # Fetching data for the specified period
     starttime_dt = datetime.now() - timedelta(days=1440)
     start_date = starttime_dt.strftime("%Y-%m-%d")
-    end_date = datetime.now().strftime("%Y-%m-%d")
     logger.debug(Fore.LIGHTGREEN_EX + f"Creating bollinger data for: {ticker}")
     logger.debug(Fore.RESET)
 
-    zar_data: pd.DataFrame = yf.download(f"ZAR=X", start=start_date, end=end_date)
-    zar_data = yf.download("ZAR=X", start=start_date, interval="1d")
+    zar_data: pd.DataFrame = yf.download("ZAR=X", start=start_date, interval="1d")
     zar_data.reset_index(inplace=True)
 
     if zar_data.empty:
         logging.info("No ZAR data to download.")
         return
-    
+
     tickerName = ticker.replace('.JO', '')
-    
+
     zar_data['close'] = zar_data['Close']
 
     zar_data.to_csv(os.path.join('data', f'{tickerName}', 'yfdata.csv'))
-    
+
+    # yfinance writes a second header row (the ticker level of its MultiIndex
+    # columns); drop it so the CSV parses back into a flat frame.
     lines: list
     with open(os.path.join('data', f'{tickerName}', 'yfdata.csv'), 'r') as f:
         lines = f.readlines()
@@ -742,6 +792,7 @@ def get_data_hash(data):
 
 
 def create_sequences(data, seq_length):
+    """Slice a 1-D series into (samples, seq_length, 1) windows and next-step targets."""
     X, y = [], []
     for i in range(len(data) - seq_length):
         X.append(data[i:i + seq_length])
@@ -758,7 +809,12 @@ def create_sequences(data, seq_length):
 
 
 def train_new_model(X, y, model_dir, model_path, hparams, sanitized_ticker):
-    # Create the directory if it does not exist
+    """Train a fresh two-layer LSTM for a ticker and persist it with metadata.
+
+    Used as a fallback when no saved model exists for a ticker on report day;
+    the dedicated training pipeline lives in ``training/close.py``.
+    Saves the model to *model_path* and accuracy metrics to ``metadata.json``.
+    """
     os.makedirs(model_dir, exist_ok=True)
     
     model: SequentialType = Sequential()
@@ -816,6 +872,7 @@ def train_new_model(X, y, model_dir, model_path, hparams, sanitized_ticker):
 
 
 def load_model_metadata(model_dir: str):
+    """Return the parsed ``metadata.json`` for a model dir, or None if absent."""
     metadata_path = os.path.join(model_dir, 'metadata.json')
     if os.path.exists(metadata_path):
         with open(metadata_path, 'r') as f:
@@ -824,6 +881,11 @@ def load_model_metadata(model_dir: str):
 
 
 def save_predictions_to_db(ticker: str, start_date, next_month_predictions: list):
+    """Persist daily predictions to the ``predictions`` table.
+
+    Currently disabled: the insert loop is commented out, so this is a no-op
+    kept for when per-day prediction storage is re-enabled.
+    """
     # Generate the dates corresponding to the predictions
     prediction_dates = [start_date + timedelta(days=i) for i in range(1, len(next_month_predictions) + 1)]
 
@@ -833,13 +895,24 @@ def save_predictions_to_db(ticker: str, start_date, next_month_predictions: list
 
 
 def predict_close_value(hist, hparams, ticker):
+    """Predict the close price 7 and 30 days ahead with the ticker's LSTM model.
+
+    The model is fed the last ``seq_length`` scaled closes and rolled forward
+    one day at a time, feeding each prediction back into the input window.
+
+    Returns:
+        tuple: (week_price, month_price, week_path, month_path) where the
+        first two are the predicted prices (in rand, i.e. inverse-scaled) at
+        the 7- and 30-day horizons and the last two are the full day-by-day
+        prediction paths used for plotting.
+    """
     logger.info(f"Starting close prediction for ticker: {ticker}")
 
-    # Scale the data
+    # Scale a copy of the close series; leave the caller's DataFrame untouched.
     scaler = MinMaxScaler()
-    hist['close'] = scaler.fit_transform(hist[['close']])
+    scaled_close = scaler.fit_transform(hist[['close']]).flatten()
     seq_length = 60
-    X, y = create_sequences(hist['close'].values, seq_length)
+    X, y = create_sequences(scaled_close, seq_length)
     X = X.reshape((X.shape[0], X.shape[1], 1))
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
@@ -864,8 +937,9 @@ def predict_close_value(hist, hparams, ticker):
         model = train_new_model(X_train, y_train, model_dir, model_path, hparams, sanitized_ticker)
         _model_cache[model_path] = model
 
-    # Make predictions
-    last_sequence = hist['close'].values[-seq_length:].reshape((1, seq_length, 1))
+    # Roll the model forward: 7 steps for the week horizon, then 30 more for
+    # the month horizon, each prediction appended to the input window.
+    last_sequence = scaled_close[-seq_length:].reshape((1, seq_length, 1))
     next_week_predictions = []
     next_month_predictions = []
 
@@ -880,6 +954,7 @@ def predict_close_value(hist, hparams, ticker):
             next_month_predictions.append(next_month_prediction)
             last_sequence = np.append(last_sequence[:, 1:, :], [[[next_month_prediction]]], axis=1)
 
+    # Map the scaled model outputs back to actual prices.
     next_week_predictions = scaler.inverse_transform(
         np.array(next_week_predictions).reshape(-1, 1)).flatten()
     next_month_predictions = scaler.inverse_transform(
@@ -887,7 +962,15 @@ def predict_close_value(hist, hparams, ticker):
 
     save_predictions_to_db(ticker, last_date_in_data, next_month_predictions)
 
-    return next_week_prediction, next_month_prediction, next_week_predictions.tolist(), next_month_predictions.tolist()
+    # Return real (inverse-scaled) prices at each horizon, not the raw scaled
+    # model output — previously the scaled value leaked out here and made the
+    # downstream "Next Week/Month Prediction" columns meaningless.
+    return (
+        float(next_week_predictions[-1]),
+        float(next_month_predictions[-1]),
+        next_week_predictions.tolist(),
+        next_month_predictions.tolist(),
+    )
 
 
 def apply_sentiment_adjustment(
@@ -924,8 +1007,20 @@ def apply_sentiment_adjustment(
     )
 
 
-# Function to fetch data and run predictions for each ticker
 def fetch_data(hparams: dict):
+    """Run the full per-ticker pipeline: history, indicators, predictions, charts.
+
+    For every stock in the universe this fetches ~11 years of history,
+    computes the technical indicators, generates the 7/30-day LSTM price
+    predictions (with the news-sentiment bias applied) and renders the chart
+    images embedded in the reports.
+
+    Returns:
+        tuple: (stocks_df, stock_images, total_value_next_week,
+        total_value_next_month). The ``Next Week/Month Prediction`` columns
+        hold the predicted *fractional change* vs the current price (e.g.
+        0.05 = +5%), which the report layer multiplies by 100.
+    """
     logger.info("Starting close data fetch process")
     stocks_df = db_queries.fetch_stock_universe_from_db()
     stock_images = []
@@ -994,7 +1089,8 @@ def fetch_data(hparams: dict):
             overbought_oversold = round(hist.iloc[-1]['Overbought_Oversold'], 2)
 
             if not PREDICTION:
-                next_week_prediction = next_month_prediction = 0
+                # Predictions disabled: report a 0% expected change.
+                next_week_prediction = next_month_prediction = current_price
                 next_month_predictions = next_week_predictions = []
                 sentiment_score = 0.0
             else:
@@ -1010,8 +1106,14 @@ def fetch_data(hparams: dict):
                 )
 
             stocks_df.at[index, 'Current Value'] = round(current_value, 2)
-            stocks_df.at[index, 'Next Week Prediction'] = round(next_week_prediction - 1, 2)
-            stocks_df.at[index, 'Next Month Prediction'] = round(next_month_prediction - 1, 2)
+            # Store predictions as fractional change vs the current price
+            # (0.05 = +5%); the report layer multiplies these by 100.
+            if current_price > 0:
+                stocks_df.at[index, 'Next Week Prediction'] = round(next_week_prediction / current_price - 1, 4)
+                stocks_df.at[index, 'Next Month Prediction'] = round(next_month_prediction / current_price - 1, 4)
+            else:
+                stocks_df.at[index, 'Next Week Prediction'] = 0.0
+                stocks_df.at[index, 'Next Month Prediction'] = 0.0
             stocks_df.at[index, 'Sentiment Score'] = round(sentiment_score, 3)
             stocks_df.at[index, 'Z-Score'] = round(z_score, 2)
             stocks_df.at[index, 'Overbought_Oversold'] = round(overbought_oversold, 2)
@@ -1056,14 +1158,18 @@ def fetch_data(hparams: dict):
 
 
 def generate_bollinger_and_overbought_oversold_close():
+    """Generate Bollinger/overbought-oversold charts for the whole universe.
+
+    One thread per ticker, started 1s apart. Note that matplotlib's pyplot
+    API is not strictly thread-safe; the stagger keeps collisions rare but
+    a process pool would be the robust alternative.
+    """
     os.makedirs(graph_dir, exist_ok=True)
 
-    # Load tickers from CSV
     df: pd.DataFrame = db_queries.fetch_stock_universe_from_db()
-    
-    threads:list[threading.Thread] = []
+
+    threads: list[threading.Thread] = []
     for index, row in df.iterrows():
-        #process_ticker_close(row['code'], row['Commodity'])
         thread = threading.Thread(target=process_ticker_close, args=(row['code'], row['commodity'], row['share_name']), name=f"Bollinger {row['code']}")
         thread.start()
         time.sleep(1)
@@ -1073,19 +1179,14 @@ def generate_bollinger_and_overbought_oversold_close():
         thread.join()
 
 
-# Function to calculate RSI
-def rsi_calculate(data, window=14):
-    delta = data['close'].diff()
-    gain = (delta.where(delta > 0, 0)).fillna(0)
-    loss = (-delta.where(delta < 0, 0)).fillna(0)
-    avg_gain = gain.rolling(window=window, min_periods=1).mean()
-    avg_loss = loss.rolling(window=window, min_periods=1).mean()
-    rs = avg_gain / avg_loss
-    rsi = 100 - (100 / (1 + rs))
-    return rsi
-
-
 def calculate_rsi_close(data, market, sector, ticker):
+    """Relative strength of a stock vs its market and sector benchmarks.
+
+    Despite the RSI naming this is a price-relative measure: the stock's
+    20/60/120-day price ratio divided by the benchmark's ratio over the same
+    window (1.0 = moved in line with the benchmark). Any leg that fails —
+    e.g. missing benchmark history — is logged and reported as 0.
+    """
     rsi_1m_sector = 0
     rsi_3m_sector = 0
     rsi_6m_sector = 0
@@ -1145,6 +1246,10 @@ def calculate_rsi_close(data, market, sector, ticker):
         market_on_market_60_day = market_now / market_60_day
         rsi_60_day = stock_on_stock_60_day / market_on_market_60_day
 
+        # NOTE: the +0.2 offset below is applied only to the 120-day market
+        # leg (not the sector leg) and skews every stock's 6M market RSI
+        # upward. It looks like a leftover tweak — review before relying on
+        # the MARKET RSI 6M column.
         stock_on_stock_120_day = (stock_now / stock_120_day) + 0.2
         market_on_market_120_day = (market_now / market_120_day)
         rsi_120_day = (stock_on_stock_120_day / market_on_market_120_day)
@@ -1197,8 +1302,13 @@ def calculate_rsi_close(data, market, sector, ticker):
     }
 
 
-# Assuming we have historical data for each stock to calculate RSI
 def add_close_rsi_comparisons(df):
+    """Add SECTOR/MARKET RSI 1M/3M/6M columns to the universe DataFrame.
+
+    Each stock is compared against the benchmark tickers configured in its
+    ``rsi_comparison_sector`` / ``rsi_comparison_market`` columns using two
+    years of history. Failures fall back to 0 for all six columns.
+    """
     starttime_dt = datetime.now() - timedelta(weeks=104)
     start_date = starttime_dt.strftime("%Y-%m-%d")
     end_date = datetime.now().strftime("%Y-%m-%d")
@@ -1255,6 +1365,7 @@ def add_close_rsi_comparisons(df):
 
 # Reporting
 def upload_to_spaces(file_path, spaces_access_key, spaces_secret_key, bucket_name, region_name, endpoint_url, today):
+    """Upload a report file to DigitalOcean Spaces and return its public URL."""
     session = boto3.session.Session()
     client = session.client('s3',
                             region_name=region_name,
@@ -1272,6 +1383,7 @@ def upload_to_spaces(file_path, spaces_access_key, spaces_secret_key, bucket_nam
 
 
 def prepare_stock_images(top_bottom_data):
+    """Collect base64 chart images for every ticker appearing in a top/bottom-10 list."""
     stock_images = []
     added_tickers = set()
 
@@ -1294,6 +1406,7 @@ def prepare_stock_images(top_bottom_data):
 
 
 def compress_pdf(filename):
+    """Compress a PDF's content streams; returns the new ``*_compressed.pdf`` path."""
     logger.debug(f"Compressing PDF report: {filename}")
     reader = PdfReader(filename)
     writer = PdfWriter()
@@ -1312,6 +1425,12 @@ def compress_pdf(filename):
 
 
 def create_detailed_pdf(data, stock_images, filename, total_value_next_week, total_value_next_month, summary_report=False, today=""):
+    """Render the summary or detailed report to HTML and convert it to PDF.
+
+    With ``summary_report=True`` the data is ranked into top/bottom-10 lists
+    per metric and rendered with ``summary_template.html``; otherwise the
+    full universe is rendered with ``detailed_template.html``.
+    """
     logger.debug(f"Creating PDF report: {filename}")
     options = {
         'page-size': 'Letter',
@@ -1368,6 +1487,12 @@ def create_detailed_pdf(data, stock_images, filename, total_value_next_week, tot
 
 
 def create_user_detailed_pdf(data, stock_images, filename, total_value_next_week, total_value_next_month, subscriber, today=""):
+    """Render a subscriber-personalised report (web view + optional PDF view).
+
+    The web view always renders from ``web_template.html``. The print view
+    renders from ``pdf_template.html`` when that template exists; PDF
+    conversion itself is currently disabled.
+    """
     logger.debug(f"Creating user: {subscriber.name}'s PDF report: {filename}")
 
     env = Environment(loader=FileSystemLoader('.'))
@@ -1387,38 +1512,42 @@ def create_user_detailed_pdf(data, stock_images, filename, total_value_next_week
     with open(html_file_path, 'w') as file:
         file.write(rendered)
 
-    env = Environment(loader=FileSystemLoader('.'))
+    # The print-oriented template is optional — without this guard a missing
+    # pdf_template.html aborted the whole subscriber loop (and the daily job).
+    if os.path.exists('pdf_template.html'):
+        template = env.get_template('pdf_template.html')
+        rendered = template.render(
+            stocks=data.to_dict(orient='records'),
+            today=today,
+            summary=create_summary(data, total_value_next_week, total_value_next_month),
+            stock_images=stock_images,
+            username=subscriber.name,
+            id_number=subscriber.id_number
+        )
 
-    template = env.get_template('pdf_template.html')
-    rendered = template.render(
-        stocks=data.to_dict(orient='records'),
-        today=today,
-        summary=create_summary(data, total_value_next_week, total_value_next_month),
-        stock_images=stock_images,
-        username=subscriber.name,
-        id_number=subscriber.id_number
-    )
+        html_file_path = filename.replace('.pdf', '_pdf.html')
+        with open(html_file_path, 'w') as file:
+            file.write(rendered)
 
-    # Write the HTML to a file for inspection
-    html_file_path = filename.replace('.pdf', '_pdf.html')
-    with open(html_file_path, 'w') as file:
-        file.write(rendered)
+        # Convert the HTML report to PDF
+        #pdfkit.from_file(html_file_path, filename, options=options)
 
-    # Convert the HTML report to PDF
-    #pdfkit.from_file(html_file_path, filename, options=options)
-
-    #generate_pdf_with_password(html_file_path, filename, subscriber.id_number)
+        #generate_pdf_with_password(html_file_path, filename, subscriber.id_number)
+    else:
+        logger.warning("pdf_template.html not found; skipping print view for subscriber report.")
 
     logger.debug(f"User: {subscriber.name}'s PDF report created at: {filename}")
 
 
 def create_html_summary(data, total_value_next_week, total_value_next_month, template):
+    """Render *template* with the stock records and the portfolio summary block."""
     summary = create_summary(data, total_value_next_week, total_value_next_month)
     html_content = template.render(stocks=data.to_dict(orient='records'), summary=summary)
     return html_content
 
 
 def create_summary(data, total_value_next_week, total_value_next_month):
+    """Build the HTML portfolio summary (invested, current and projected value)."""
     try:
         total_invested = data['Initial Purchase Amount'].sum()
     except Exception:
@@ -1441,20 +1570,16 @@ def create_summary(data, total_value_next_week, total_value_next_month):
 
 
 def send_email(subject, summary_report_url, detailed_report_url, top_bottom_data, sorted_stock_data, subscriber_urls):
+    """Email the daily report to every active subscriber.
+
+    Each subscriber gets an individually rendered message containing a unique
+    tracking URL (stored back on the subscriber record) and a link to their
+    personalised detailed report when one exists in *subscriber_urls*.
+    """
     try:
         # Load the HTML template
         env = Environment(loader=FileSystemLoader('.'))
         template = env.get_template('email_template.html')
-
-        # Prepare the email message
-        message = MIMEMultipart()
-        message['From'] = formataddr(("Stock Bot", EMAIL_ADDRESS))
-        message['Subject'] = subject
-        message['To'] = ','.join([
-            formataddr(("Raine Pretorius", 'raine.pretorius1@gmail.com')),
-            formataddr(("Franco Pretorius", 'francopret@gmail.com')),
-            formataddr(("Rudolph Pretorius", 'rudieprettie@gmail.com'))
-        ])
 
         # Fetch subscribers from the database
         subscribers = db_queries.fetch_active_subscribers()
@@ -1516,6 +1641,14 @@ def send_email(subject, summary_report_url, detailed_report_url, top_bottom_data
 
 
 def daily_job():
+    """Run the complete daily close-price job once.
+
+    Order of operations: ZAR charts → per-ticker Bollinger charts →
+    predictions/indicators for the whole universe → RSI benchmark
+    comparisons → CSV snapshot + ``close_runs`` upload → summary, detailed
+    and per-subscriber reports. Any uncaught error aborts the run (it is
+    logged, and cached models/GPU memory are always released).
+    """
     while True:
         try:
             start_time = datetime.now()
@@ -1552,7 +1685,11 @@ def daily_job():
 
             if not DEBUGGING:
                 try:
-                    db_queries.upload_close(os.path.join('data', 'runs', f"{execute_time.replace(':', '')}_close.csv"))
+                    # upload_close_runs is the correct helper — the previous
+                    # call to a non-existent db_queries.upload_close raised an
+                    # AttributeError that was silently swallowed here, so runs
+                    # were never uploaded.
+                    db_queries.upload_close_runs(os.path.join('data', 'runs', f"{execute_time.replace(':', '')}_close.csv"))
                     logger.debug(Fore.GREEN + "Uploaded Close runs for today" + Fore.RESET)
 
                 except Exception as ex:
@@ -1688,6 +1825,7 @@ def daily_job():
             gc.collect()
 
 def setup_scheduler():
+    """Block forever, re-running ``daily_job`` every day at 06:08."""
     schedule.every().day.at("06:08").do(daily_job)
     while True:
         schedule.run_pending()

@@ -1,3 +1,21 @@
+"""Close-price model training pipeline.
+
+For every ticker in the stock universe this script:
+
+1. Pulls ~7 years of OHLCV history from the sharesdata DB.
+2. Engineers technical-analysis features (MAs, RSI, MACD, Bollinger, ATR,
+   OBV, stochastics, calendar features, lags, rolling stats and news
+   sentiment).
+3. Searches hyperparameters with Optuna on the first run for a ticker, then
+   trains a bidirectional GRU model and saves it with its metrics under
+   ``models/{TICKER}/``. Subsequent runs fine-tune the saved model whenever
+   newer data is available.
+
+Run with ``python -m training.close`` (preferred) or ``python
+training/close.py``. After the initial pass the script reschedules itself
+daily at 18:30. GPU OOM errors trigger a full process restart via
+``restart_script()``.
+"""
 import os
 import sys
 
@@ -11,7 +29,6 @@ import logging
 import numpy as np
 import pandas as pd
 from datetime import datetime, timedelta
-from keras.api import Sequential
 from tensorflow.keras.models import Sequential, load_model # type: ignore
 from tensorflow.keras.layers import ( # type: ignore
     LSTM, Dense, Dropout, GRU, Bidirectional,
@@ -45,9 +62,11 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 
-# Capture the module spec name so we can re‑invoke via "-m"
-MODULE_NAME = __spec__.name  # should be "training.close"
-RETRAIN = False  # Set to True to force retraining
+# Capture the module spec name so restart_script() can re-invoke via "-m".
+# __spec__ is None when run as a plain script (python training/close.py),
+# which previously crashed at import time — fall back to the module path.
+MODULE_NAME = __spec__.name if __spec__ is not None else "training.close"
+RETRAIN = False  # Set to True to force retraining even with no new data
 
 
 # Set TensorFlow to use GPU memory growth
@@ -64,6 +83,12 @@ if gpus:
 
 # Callback Classes
 class PredictionCallback(tf.keras.callbacks.Callback): # type: ignore
+    """Keras callback that records the model's predictions after every epoch.
+
+    Useful for inspecting how predictions evolve during training; the
+    per-epoch arrays accumulate in ``self.predictions``.
+    """
+
     def __init__(self, X, y):
         super(PredictionCallback, self).__init__()
         self.X = X
@@ -76,8 +101,14 @@ class PredictionCallback(tf.keras.callbacks.Callback): # type: ignore
 
 
 class AccuracyCallback(tf.keras.callbacks.Callback): # type: ignore
+    """Stop training once validation accuracy-within-tolerance hits the target.
+
+    After each epoch the share of validation predictions within *tolerance*
+    of the true value is logged; training stops early once it reaches
+    *target_accuracy* percent.
+    """
+
     def __init__(self, X_val, y_val, tolerance=0.10, target_accuracy=90.0, ticker:str=None):
-        """Initialize the AccuracyCallback."""
         super(AccuracyCallback, self).__init__()
         self.X_val = X_val
         self.y_val = y_val
@@ -216,7 +247,13 @@ def handle_missing_values(df):
 
 
 def preprocess_data(hist, ticker: str = ""):
-    """Preprocess the historical data."""
+    """Clean the history and engineer all model input features.
+
+    Removes outliers/non-positive closes, forward-fills gaps, then adds the
+    technical indicators, calendar features, lags, rolling statistics and the
+    per-day news-sentiment score (0.0 where no sentiment record exists).
+    Rows made NaN by indicator warm-up windows are dropped.
+    """
     # Remove outliers
     hist = remove_outliers(hist, 'close')
 
@@ -365,7 +402,11 @@ def load_and_scale_data(hist):
 
 
 def objective(trial, X_train, y_train, X_val, y_val, ticker):
-    # Suggest hyperparameters
+    """Optuna objective: train one candidate model and score it.
+
+    Returns ``100 - accuracy_within_10%`` so that Optuna's minimisation
+    maximises validation accuracy. GPU memory is cleared after every trial.
+    """
     hp_lstm_units = trial.suggest_int('HP_LSTM_UNITS', 50, 300)
     hp_gru_units = trial.suggest_int('HP_GRU_UNITS', 50, 300)
     hp_dropout = trial.suggest_float('HP_DROPOUT', 0.1, 0.5)
@@ -652,7 +693,13 @@ def check_and_train_model(ticker, hparams, seq_length=60):
             accuracy_callback = AccuracyCallback(
                 X_val, y_val, tolerance=0.10, target_accuracy=90.0, ticker=ticker)
 
-            hparams.update(load_best_hyperparameters(ticker, model_dir))
+            # Reuse the ticker's tuned hyperparameters when available; an
+            # older model dir without the JSON file should not abort the
+            # fine-tune run.
+            try:
+                hparams.update(load_best_hyperparameters(ticker, model_dir))
+            except FileNotFoundError:
+                logger.warning(f"No saved hyperparameters for {ticker}; fine-tuning with current defaults.")
 
             history = model.fit(
                 X_train, y_train,
@@ -758,14 +805,16 @@ def check_and_train_model(ticker, hparams, seq_length=60):
 
 
 def run_training_loop(hparams):
-    """Runs the training loop for all tickers in the stock universe."""
+    """Run a training/fine-tune check for every ticker in the stock universe."""
     df: pd.DataFrame = db_queries.fetch_stock_universe_from_db()
 
     for index, row in df.iterrows():
-        # Skip certain tickers based on specific conditions
         try:
             clear_gpu_memory()
-            check_and_train_model(row['code'], hparams)
+            # Pass a copy: check_and_train_model merges each ticker's tuned
+            # hyperparameters into the dict it receives, and one ticker's
+            # values must not leak into the next ticker's run.
+            check_and_train_model(row['code'], dict(hparams))
             clear_gpu_memory()
         except tf.errors.ResourceExhaustedError as e:
             logger.error(f"OOM during Training loop: {e}\n→ restarting script…")
@@ -803,6 +852,7 @@ def clear_gpu_memory():
 
 
 def format_timedelta(td):
+    """Format a timedelta as a human-readable '2 hours, 5 minutes and 1 second'."""
     total_seconds = int(td.total_seconds())
     hours, remainder = divmod(total_seconds, 3600)
     minutes, seconds = divmod(remainder, 60)

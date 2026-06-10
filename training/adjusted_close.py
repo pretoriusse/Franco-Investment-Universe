@@ -1,3 +1,12 @@
+"""Adjusted-close model training pipeline.
+
+Twin of ``training/close.py`` but targeting the adjusted close price: per
+ticker it engineers TA features, tunes hyperparameters with Optuna on first
+run, trains a bidirectional GRU and fine-tunes it on later runs when new
+data exists. Models are saved as
+``models/{TICKER}/{TICKER}_Adjusted_Close_Model.keras`` with metrics in
+``adjusted_close_metadata.json``. Runs immediately, then daily at 18:30.
+"""
 import os
 
 # Suppress TensorFlow warnings
@@ -10,7 +19,6 @@ import logging
 import numpy as np
 import pandas as pd
 from datetime import datetime, timedelta
-from keras.api import Sequential
 from tensorflow.keras.models import Sequential, load_model # type: ignore
 from tensorflow.keras.layers import ( # type: ignore
     LSTM, Dense, Dropout, GRU, Bidirectional,
@@ -57,6 +65,8 @@ if gpus:
 
 # Callback Classes
 class PredictionCallback(tf.keras.callbacks.Callback):
+    """Keras callback that records the model's predictions after every epoch."""
+
     def __init__(self, X, y):
         super(PredictionCallback, self).__init__()
         self.X = X
@@ -69,6 +79,8 @@ class PredictionCallback(tf.keras.callbacks.Callback):
 
 
 class AccuracyCallback(tf.keras.callbacks.Callback):
+    """Stop training once validation accuracy-within-tolerance hits the target."""
+
     def __init__(self, X_val, y_val, tolerance=0.10, target_accuracy=90.0):
         super(AccuracyCallback, self).__init__()
         self.X_val = X_val
@@ -193,7 +205,12 @@ def handle_missing_values(df):
 
 
 def preprocess_data(hist):
-    """Preprocess the historical data."""
+    """Clean the history and engineer all model input features.
+
+    Removes outliers/non-positive values, forward-fills gaps, then adds the
+    technical indicators, calendar features, lags and rolling statistics.
+    Rows made NaN by indicator warm-up windows are dropped.
+    """
     # Remove outliers
     hist = remove_outliers(hist, 'Adj Close')
 
@@ -333,7 +350,7 @@ def optimize_hyperparameters(ticker, hparams, X_train, y_train, X_val, y_val):
     """Optimize hyperparameters using Optuna for each ticker."""
 
     def objective(trial):
-        # Suggest hyperparameters
+        """Train one candidate model; return 100 - accuracy_within_10% to minimise."""
         hp_lstm_units = trial.suggest_int('HP_LSTM_UNITS', 50, 300)
         hp_gru_units = trial.suggest_int('HP_GRU_UNITS', 50, 300)
         hp_dropout = trial.suggest_float('HP_DROPOUT', 0.1, 0.5)
@@ -380,7 +397,7 @@ def optimize_hyperparameters(ticker, hparams, X_train, y_train, X_val, y_val):
 
     # Create Optuna study and optimize
     study = optuna.create_study(direction='minimize')
-    study.optimize(lambda trial: objective(trial), n_trials=hparams.get('OPTUNA_TRIALS', 50))
+    study.optimize(objective, n_trials=hparams.get('OPTUNA_TRIALS', 50))
 
     best_params = study.best_params
     logger.info(f"Best hyperparameters found for {ticker}: {best_params}")
@@ -634,17 +651,21 @@ def check_and_train_model(ticker, hparams, seq_length=60):
 
 
 def run_training_loop(hparams):
-    """Runs the training loop for all tickers in the stock universe."""
+    """Run a training/fine-tune check for every eligible ticker in the universe.
+
+    Futures (codes containing '='), commodities and index/ETF trackers are
+    skipped — only ordinary JSE equities get adjusted-close models.
+    """
     df: pd.DataFrame = db_queries.fetch_stock_universe_from_db()
 
     for index, row in df.iterrows():
-        # Skip certain tickers based on specific conditions
         if "=" in row['code'] or row['commodity'] or row['code'] in ['%5EJ300.JO', 'STXFIN.JO', 'STXCAP.JO', 'STXRES.JO']:
             continue
-        sanitized_ticker = sanitize_ticker(row['code'])
-        model_dir = os.path.join('models', sanitized_ticker)
         try:
-            check_and_train_model(row['code'], hparams)
+            # Pass a copy: check_and_train_model merges each ticker's tuned
+            # hyperparameters into the dict it receives, and one ticker's
+            # values must not leak into the next ticker's run.
+            check_and_train_model(row['code'], dict(hparams))
         except Exception as e:
             logger.error(f"Error occurred for {row['code']}: {e}")
             continue

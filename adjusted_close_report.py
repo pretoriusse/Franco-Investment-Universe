@@ -1,3 +1,10 @@
+"""Daily adjusted-close report pipeline.
+
+Twin of ``close_report.py`` but driven by the adjusted close price (i.e.
+dividend/split adjusted). Entry point is ``daily_job()``, called by
+``main.py`` after the close job. See ``close_report.py`` for documentation
+of the shared per-ticker flow — the functions here mirror it one-to-one.
+"""
 import os
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # Suppress TensorFlow warnings
@@ -824,12 +831,20 @@ def save_predictions_to_db(ticker: str, start_date, next_month_predictions: list
 
 
 def predict_adjusted_close_value(hist, hparams, ticker):
+    """Predict the adjusted close 7 and 30 days ahead with the ticker's LSTM model.
+
+    Returns:
+        tuple: (week_price, month_price, week_path, month_path) where the
+        first two are inverse-scaled prices at the 7- and 30-day horizons and
+        the last two are the full day-by-day prediction paths for plotting.
+    """
     logger.info(f"Starting adjusted close prediction for ticker: {ticker}")
 
+    # Scale a copy of the series; leave the caller's DataFrame untouched.
     scaler = MinMaxScaler()
-    hist['Adj Close'] = scaler.fit_transform(hist[['Adj Close']])
+    scaled_adj_close = scaler.fit_transform(hist[['Adj Close']]).flatten()
     seq_length = 60
-    X, y = create_sequences(hist['Adj Close'].values, seq_length)
+    X, y = create_sequences(scaled_adj_close, seq_length)
     X = X.reshape((X.shape[0], X.shape[1], 1))
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
@@ -852,7 +867,7 @@ def predict_adjusted_close_value(hist, hparams, ticker):
         model = train_new_model(X_train, y_train, model_dir, model_path, hparams, sanitized_ticker)
         _model_cache[model_path] = model
 
-    last_sequence = hist['Adj Close'].values[-seq_length:].reshape((1, seq_length, 1))
+    last_sequence = scaled_adj_close[-seq_length:].reshape((1, seq_length, 1))
     next_week_predictions = []
     next_month_predictions = []
 
@@ -874,7 +889,15 @@ def predict_adjusted_close_value(hist, hparams, ticker):
 
     save_predictions_to_db(ticker, last_date_in_data, next_month_predictions)
 
-    return next_week_prediction, next_month_prediction, next_week_predictions.tolist(), next_month_predictions.tolist()
+    # Return real (inverse-scaled) prices at each horizon, not the raw scaled
+    # model output — previously the scaled value leaked out here and made the
+    # downstream "Next Week/Month Prediction" columns meaningless.
+    return (
+        float(next_week_predictions[-1]),
+        float(next_month_predictions[-1]),
+        next_week_predictions.tolist(),
+        next_month_predictions.tolist(),
+    )
 
 
 def apply_sentiment_adjustment(
@@ -968,7 +991,8 @@ def fetch_data(hparams: dict):
             overbought_oversold = round(hist.iloc[-1]['Overbought_Oversold'], 2)
 
             if not PREDICTION:
-                next_week_prediction = next_month_prediction = 0
+                # Predictions disabled: report a 0% expected change.
+                next_week_prediction = next_month_prediction = current_price
                 next_month_predictions = next_week_predictions = []
                 sentiment_score = 0.0
             else:
@@ -983,8 +1007,14 @@ def fetch_data(hparams: dict):
                 )
 
             stocks_df.at[index, 'Current Value'] = round(current_value, 2)
-            stocks_df.at[index, 'Next Week Prediction'] = round(next_week_prediction - 1, 2)
-            stocks_df.at[index, 'Next Month Prediction'] = round(next_month_prediction - 1, 2)
+            # Store predictions as fractional change vs the current price
+            # (0.05 = +5%); the report layer multiplies these by 100.
+            if current_price > 0:
+                stocks_df.at[index, 'Next Week Prediction'] = round(next_week_prediction / current_price - 1, 4)
+                stocks_df.at[index, 'Next Month Prediction'] = round(next_month_prediction / current_price - 1, 4)
+            else:
+                stocks_df.at[index, 'Next Week Prediction'] = 0.0
+                stocks_df.at[index, 'Next Month Prediction'] = 0.0
             stocks_df.at[index, 'Sentiment Score'] = round(sentiment_score, 3)
             stocks_df.at[index, 'Z-Score'] = round(z_score, 2)
             stocks_df.at[index, 'Overbought_Oversold'] = round(overbought_oversold, 2)
@@ -1345,6 +1375,12 @@ def create_detailed_pdf(data, stock_images, filename, total_value_next_week, tot
 
 
 def create_user_detailed_pdf(data, stock_images, filename, total_value_next_week, total_value_next_month, subscriber, today=""):
+    """Render a subscriber-personalised report (web view + optional PDF view).
+
+    The web view always renders from ``web_template.html``. The print view
+    renders from ``pdf_template.html`` when that template exists; PDF
+    conversion itself is currently disabled.
+    """
     logger.debug(f"Creating user: {subscriber.name}'s PDF report: {filename}")
 
     env = Environment(loader=FileSystemLoader('.'))
@@ -1364,27 +1400,29 @@ def create_user_detailed_pdf(data, stock_images, filename, total_value_next_week
     with open(html_file_path, 'w') as file:
         file.write(rendered)
 
-    env = Environment(loader=FileSystemLoader('.'))
+    # The print-oriented template is optional — without this guard a missing
+    # pdf_template.html aborted the whole subscriber loop (and the daily job).
+    if os.path.exists('pdf_template.html'):
+        template = env.get_template('pdf_template.html')
+        rendered = template.render(
+            stocks=data.to_dict(orient='records'),
+            today=today,
+            summary=create_summary(data, total_value_next_week, total_value_next_month),
+            stock_images=stock_images,
+            username=subscriber.name,
+            id_number=subscriber.id_number
+        )
 
-    template = env.get_template('pdf_template.html')
-    rendered = template.render(
-        stocks=data.to_dict(orient='records'),
-        today=today,
-        summary=create_summary(data, total_value_next_week, total_value_next_month),
-        stock_images=stock_images,
-        username=subscriber.name,
-        id_number=subscriber.id_number
-    )
+        html_file_path = filename.replace('.pdf', '_pdf.html')
+        with open(html_file_path, 'w') as file:
+            file.write(rendered)
 
-    # Write the HTML to a file for inspection
-    html_file_path = filename.replace('.pdf', '_pdf.html')
-    with open(html_file_path, 'w') as file:
-        file.write(rendered)
+        # Convert the HTML report to PDF
+        #pdfkit.from_file(html_file_path, filename, options=options)
 
-    # Convert the HTML report to PDF
-    #pdfkit.from_file(html_file_path, filename, options=options)
-
-    #generate_pdf_with_password(html_file_path, filename, subscriber.id_number)
+        #generate_pdf_with_password(html_file_path, filename, subscriber.id_number)
+    else:
+        logger.warning("pdf_template.html not found; skipping print view for subscriber report.")
 
     logger.debug(f"User: {subscriber.name}'s PDF report created at: {filename}")
 
