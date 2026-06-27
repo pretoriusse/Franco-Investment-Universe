@@ -1,0 +1,7 @@
+# ── Test tooling (not required in production) ────────────────────────────────
+pytest==8.3.4
+
+# WTForms' Email() validator imports this at call time; it is missing from
+# requirements.txt today, so RegistrationForm/LoginForm validation will raise
+# ImportError in a clean environment until it's added there too.
+email-validator==2.2.0

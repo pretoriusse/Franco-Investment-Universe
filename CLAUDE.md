@@ -330,7 +330,15 @@ via `python-dotenv`.
 
 ## Testing
 
-No automated test suite exists. `pytest` is available in the environment.
+A `pytest` suite covers the pure-logic modules that don't require a live DB,
+network, or trained model (`tests/`). It does not yet cover `app.py` routes,
+the report-generation monoliths, or `assets/database_queries.py` — see
+`TEST_COVERAGE_ANALYSIS.md` for the gaps and recommended next steps.
+
+```bash
+pip install -r requirements-dev.txt
+pytest
+```
 
 To manually verify the ML pipeline:
 ```bash
