@@ -1,11 +1,48 @@
-name: Tests
+name: CI
 
 on:
   push:
   pull_request:
 
 jobs:
+  compile:
+    name: Syntax check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      # Pure syntax/compile check — no dependencies needed, so this catches
+      # broken code in seconds even before the heavy pytest job starts.
+      - name: Compile all Python sources
+        run: python -m compileall -q .
+
+  lint:
+    name: Lint (ruff)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install ruff
+        run: pip install ruff
+
+      # Report-only for now: the repo has ~125 pre-existing findings ruff
+      # would need cleaning up before this can gate merges. Drop
+      # `continue-on-error` once that backlog is cleared.
+      - name: Run ruff
+        run: ruff check --output-format=github .
+        continue-on-error: true
+
   pytest:
+    name: Tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -13,6 +50,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+          cache: pip
 
       - name: Install dependencies
         run: |
