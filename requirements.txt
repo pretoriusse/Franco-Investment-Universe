@@ -19,8 +19,10 @@ scikit-learn==1.5.1
 optuna==4.2.1
 
 # ── Data Processing ───────────────────────────────────────────────────────────
-pandas==3.0.2
-numpy==2.4.6
+# Pinned to what tensorflow==2.18.0 actually supports (numpy<2.1,>=1.26) —
+# pandas==3.0.2/numpy==2.4.6 were ahead of that and unresolvable alongside it.
+pandas==2.2.3
+numpy==1.26.4
 scipy==1.14.1
 
 # ── Technical Analysis ────────────────────────────────────────────────────────
