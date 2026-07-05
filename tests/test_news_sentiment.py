@@ -11,27 +11,27 @@ from datetime import datetime, timedelta
 import pytest
 
 from assets.news_sentiment import (
-    _score_text,
+    score_text,
     aggregate_daily_sentiment,
     fetch_news_for_ticker,
     get_current_sentiment,
 )
 
 
-def test_score_text_empty_string_is_neutral():
-    assert _score_text("") == 0.0
-    assert _score_text(None) == 0.0
+def testscore_text_empty_string_is_neutral():
+    assert score_text("") == 0.0
+    assert score_text(None) == 0.0
 
 
-def test_score_text_financial_lexicon_boosts_positive_terms():
-    plain = _score_text("Company reports results")
-    boosted = _score_text("Company reports record profits and a rally")
+def testscore_text_financial_lexicon_boosts_positive_terms():
+    plain = score_text("Company reports results")
+    boosted = score_text("Company reports record profits and a rally")
     assert boosted > plain
     assert boosted > 0
 
 
-def test_score_text_financial_lexicon_boosts_negative_terms():
-    score = _score_text("Company faces bankruptcy and fraud investigation")
+def testscore_text_financial_lexicon_boosts_negative_terms():
+    score = score_text("Company faces bankruptcy and fraud investigation")
     assert score < -0.5
 
 

@@ -117,7 +117,6 @@ path_wkhtmltopdf = (
         else "/usr/bin/wkhtmltopdf"
     )
 )
-pdfkit_config = pdfkit.configuration(wkhtmltopdf=path_wkhtmltopdf)
 
 # Where finished reports are written. Linux box uses the mounted backup share;
 # Windows dev box falls back to ~/Shares/Reports. Override with REPORTS_DIR.
