@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Stock Report Summary</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        .content-wrapper {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .header img {
+            max-width: 100%;
+            height: auto;
+            max-height: 200px; /* Ensures the logo doesn't get too large */
+        }
+        h2 {
+            color: #333333;
+            border-bottom: 2px solid #dddddd;
+            padding-bottom: 5px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #dddddd;
+            text-align: left;
+            padding: 12px;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        .positive {
+            color: green;
+        }
+        .negative {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <div class="content-wrapper">
+        <div class="header">
+            <img src="https://cdn1.pretoriusse.net/CDN/Logo/Logo/cover.png" alt="Pretoriusse Logo">
+        </div>
+        <h2>Summary Report for {{today}}</h2>
+        {% for metric, data in top_bottom_data.items() %}
+        <h2>{{ metric.replace('_', ' ') }}</h2>
+        <h3>Top 10</h3>
+        <table>
+            <tr>
+                <th>Share Code</th>
+                <th>Name</th>
+                <th>Current Price</th>
+                <th>{{ metric.replace('_', ' ') }}</th>
+            </tr>
+            {% for stock in data.top_10 %}
+            <tr>
+                <td><a href="https://finance.yahoo.com/quote/{{ stock['code'] }}/">{{ stock['code'] }}</a></td>
+                <td>{{ stock['share_name'] }}</td>
+                <td>{{ stock['Current Price'] / 100 | round(2) }}</td>
+                <td>{{ stock[metric] }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+
+        <h3>Bottom 10</h3>
+        <table>
+            <tr>
+                <th>Share Code</th>
+                <th>Name</th>
+                <th>Current Price</th>
+                <th>{{ metric.replace('_', ' ') }}</th>
+            </tr>
+            {% for stock in data.bottom_10 %}
+            <tr>
+                <td><a href="https://finance.yahoo.com/quote/{{ stock['code'] }}/">{{ stock['code'] }}</a></td>
+                <td>{{ stock['share_name'] }}</td>
+                <td>{{ stock['Current Price'] / 100 | round(2) }}</td>
+                <td>{{ stock[metric] }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+        {% endfor %}
+        {% for stockimg in stock_images %}
+        <div class="image-container">
+            <h3>{{ stockimg.name }}</h3>
+            {% if stockimg.prediction %}
+                <img src="data:image/png;base64,{{ stockimg.prediction }}" alt="{{ stockimg.ticker }} Close Prediction">
+            {% endif %}
+            {% if stockimg.adj_prediction %}
+                <img src="data:image/png;base64,{{ stockimg.adj_prediction }}" alt="{{ stockimg.ticker }} Adjusted Close Prediction">
+            {% endif %}
+            {% if stockimg.close_prediction %}
+                <img src="data:image/png;base64,{{ stockimg.close_prediction }}" alt="{{ stockimg.ticker }} Close Prediction">
+            {% endif %}
+            <img src="data:image/png;base64,{{ stockimg.bollinger }}" alt="{{ stockimg.ticker }} Bollinger">
+            <img src="data:image/png;base64,{{ stockimg.overbought_oversold }}" alt="{{ stockimg.ticker }} Overbought/Oversold">
+        </div>
+        {% endfor %}
+
+    </div>
+</body>
+</html>

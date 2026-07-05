@@ -1,0 +1,24 @@
+# Ignore data directory and all its contents
+data/
+
+# Ignore logs directory and all its contents
+logs/
+
+models/
+runs/
+reports/
+plots/
+venv/
+output/
+graphify-out/
+__pycache__/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+
+*.pyc
+*.sql
+*.backup
+
+# Secrets — never commit
+.env

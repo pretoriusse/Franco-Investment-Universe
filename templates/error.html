@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% block title %}Error - MarketWatch{% endblock %}
+{% block content %}
+<section class="about" style="margin-top:48px">
+    <h2>Something went wrong</h2>
+    <p>{{ message or 'An unexpected error occurred.' }}</p>
+    <a class="btn" href="{{ url_for('home') }}">Back to home</a>
+</section>
+{% endblock %}

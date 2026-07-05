@@ -1,0 +1,6 @@
+{# Tiled, viewer-tied screenshot-deterrent watermark. Included only by pages
+   showing subscriber content (reports, portfolio). #}
+{% if current_user.is_authenticated %}
+{% set wm = current_user.id_number ~ '  ·  ' ~ current_user.name ~ '     ' %}
+<div class="watermark" aria-hidden="true">{{ wm * 320 }}</div>
+{% endif %}

@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block title %}Data API - MarketWatch{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <div class="hero-content">
+        <h1>Data API</h1>
+        <p>Programmatic access to daily JSE signals as CSV. Requires the API add-on tier.</p>
+    </div>
+</section>
+
+<section class="api-docs">
+    <h2>Your API Key</h2>
+    <form method="POST" action="{{ url_for('api_generate_key') }}"
+          onsubmit="return confirm('Generating a new key invalidates any existing one. Continue?');">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="btn btn-primary">Generate / Rotate API Key</button>
+    </form>
+    <p><small>The key is shown once, immediately after generation. Store it securely — we only keep a hash.</small></p>
+
+    <h2>Endpoint</h2>
+    <p><code>GET /api/v1/signals.csv</code> — latest buy/sell signals for the full universe.</p>
+    <p>Authenticate with the <code>X-API-Key</code> header:</p>
+    <pre>curl -H "X-API-Key: YOUR_KEY" https://research.pretoriusse.net/api/v1/signals.csv -o signals.csv</pre>
+
+    <h2>Columns</h2>
+    <p><code>ticker, share_name, run_date, current_price, next_week_prediction,
+    next_month_prediction, z_score, ma24, ma55, verdict, reason</code></p>
+</section>
+{% endblock %}

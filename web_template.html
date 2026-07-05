@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Stock Report - {{ username }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f9f9f9;
+            position: relative;
+            overflow: auto; /* Allow scrolling */
+            height: 100vh; /* Ensure the body takes the full viewport height */
+        }
+        .content-wrapper {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            position: relative;
+            z-index: 10;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .header img {
+            max-width: 100%;
+            height: auto;
+            max-height: 200px;
+        }
+        h2 {
+            color: #333333;
+            border-bottom: 2px solid #dddddd;
+            padding-bottom: 5px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            table-layout: fixed;
+        }
+        th, td {
+            border: 1px solid #dddddd;
+            text-align: center;
+            padding: 8px;
+            word-wrap: break-word;
+            font-size: 12px;
+        }
+        th {
+            background-color: #b983ff; /* Light purple */
+            color: #ffffff;
+            font-weight: bold;
+        }
+        td {
+            background-color: #f2e5ff; /* Very light purple */
+            color: #333333;
+        }
+        .sector-table {
+            margin-top: 20px;
+        }
+        .legend {
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        .legend span {
+            display: inline-block;
+            margin-right: 20px;
+        }
+        .button-container {
+            margin-top: 20px;
+            text-align: center;
+        }
+        .button {
+            display: inline-block;
+            background: linear-gradient(90deg, #b872f5, #9f62f0);
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 10px;
+            font-size: 16px;
+        }
+        .button:hover {
+            background: linear-gradient(90deg, #8f61b7, #b983ff);
+        }
+
+        /* Watermark for screenshot prevention */
+        body::before {
+            content: "Report generated for: {{ username }} - {{ id_number }}";
+            font-size: 50px;
+            color: rgba(0, 0, 0, 0.1);
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1;
+            pointer-events: none;
+            user-select: none;
+        }
+
+        /* Hide content for printing */
+        @media print {
+            body {
+                display: none;
+            }
+        }
+
+        /* Disable text selection and copy-paste */
+        * {
+            user-select: none;
+        }
+    </style>
+    <script>
+        // Disable right-click
+        document.addEventListener('contextmenu', event => event.preventDefault());
+    
+        // Disable text selection
+        document.addEventListener('selectstart', event => event.preventDefault());
+    
+        // Disable Ctrl+C, Ctrl+V (copy-paste)
+        document.addEventListener('keydown', function(event) {
+            if ((event.ctrlKey && event.key === 'c') || (event.ctrlKey && event.key === 'v')) {
+                event.preventDefault();
+            }
+        });
+        
+        // Prevent screen capturing (can detect some tools)
+        setInterval(() => {
+            if (window.outerHeight - window.innerHeight > 200 || window.outerWidth - window.innerWidth > 200) {
+                document.body.innerHTML = "<h1>Screen capture detected! Please contact support.</h1>";
+            }
+        }, 1000);
+    </script>
+</head>
+<body>
+    <div class="content-wrapper">
+        <div class="header">
+            <img src="https://cdn1.pretoriusse.net/CDN/Logo/Logo/cover.png" alt="Pretoriusse Logo">
+        </div>
+        <h2>Detailed Report for {{today}}</h2>
+        <table>
+            <tr>
+                <th>Stock Code</th>
+                <th>Name</th>
+                <th>Current Price (R)</th>
+            </tr>
+            {% for stock in stocks %}
+            <tr>
+                <td><a href="https://finance.yahoo.com/quote/{{ stock['code'] }}/">{{ stock['code'] }}</a></td>
+                <td>{{ stock['share_name'] }}</td>
+                <>{{ stock['Current Price'] / 100 | round(2) }} </td>
+            </tr>
+            {% endfor %}
+        </table>
+        <h2>Technical Information</h2>
+        <table>
+            <tr>
+                <th>Stock Code</th>
+                <th>Name</th>
+                <th>Current Price</th>
+                <th>Next Week Prediction (%)</th>
+                <th>Next Month Prediction (%)</th>
+                <th>Z-Score</th>
+                <th>Overbought/Oversold</th>
+            </tr>
+            {% for stock in stocks %}
+            <tr>
+                <td><a href="https://finance.yahoo.com/quote/{{ stock['code'] }}/">{{ stock['code'] }}</a></td>
+                <td>{{ stock['share_name'] }}</td>
+                <td>{{ stock['Current Price'] / 100 | round(2) }}</td>
+                <td class="{{ 'positive' if stock['Next Week Prediction'] >= 0 else 'negative' }}">{{ stock['Next Week Prediction'] | round(2) }}</td>
+                <td class="{{ 'positive' if stock['Next Month Prediction'] >= 0 else 'negative' }}">{{ stock['Next Month Prediction'] | round(2) }}</td>
+                <td>{{ stock['Z-Score'] | round(2) }}</td>
+                <td class="{{ 'positive' if stock['Overbought_Oversold'] >= 0 else 'negative' }}">{{ stock['Overbought_Oversold_Value'] | round(2) }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+        <h2>RSI</h2>
+        <table>
+            <tr>
+                <th>Share Code</th>
+                <th>Name</th>
+                <th>Current Price</th>
+                <th>Sector RSI 1m</th>
+                <th>Sector RSI 3m</th>
+                <th>Sector RSI 6m</th>
+                <th>Market RSI 1m</th>
+                <th>Market RSI 3m</th>
+                <th>Market RSI 6m</th>
+            </tr>
+            {% for stock in stocks %}
+            <tr>
+                <td><a href="https://finance.yahoo.com/quote/{{ stock['code'] }}/">{{ stock['code'] }}</a></td>
+                <td>{{ stock['share_name'] }}</td>
+                <td>{{ stock['Current Price'] / 100 | round(2) }}</td>
+                <td class="{{ 'rsi-positive' if stock['SECTOR RSI 1M'] >= 1 else 'rsi-negative' }}">{{ stock['SECTOR RSI 1M'] | round(2) }}</td>
+                <td class="{{ 'rsi-positive' if stock['SECTOR RSI 3M'] >= 1 else 'rsi-negative' }}">{{ stock['SECTOR RSI 3M'] | round(2) }}</td>
+                <td class="{{ 'rsi-positive' if stock['SECTOR RSI 6M'] >= 1 else 'rsi-negative' }}">{{ stock['SECTOR RSI 6M'] | round(2) }}</td>
+                <td class="{{ 'rsi-positive' if stock['MARKET RSI 1M'] >= 1 else 'rsi-negative' }}">{{ stock['MARKET RSI 1M'] | round(2) }}</td>
+                <td class="{{ 'rsi-positive' if stock['MARKET RSI 3M'] >= 1 else 'rsi-negative' }}">{{ stock['MARKET RSI 3M'] | round(2) }}</td>
+                <td class="{{ 'rsi-positive' if stock['MARKET RSI 6M'] >= 1 else 'rsi-negative' }}">{{ stock['MARKET RSI 6M'] | round(2) }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+        {% for stockimg in stock_images %}
+        <div class="image-container">
+            <h3>{{ stockimg.name }}</h3>
+            {% if stockimg.prediction %}
+                <img src="data:image/png;base64,{{ stockimg.prediction }}" alt="{{ stockimg.ticker }} Prediction">
+            {% endif %}
+            {% if stockimg.adj_prediction %}
+                <img src="data:image/png;base64,{{ stockimg.adj_prediction }}" alt="{{ stockimg.ticker }} Adjusted Close Prediction">
+            {% endif %}
+            {% if stockimg.close_prediction %}
+                <img src="data:image/png;base64,{{ stockimg.close_prediction }}" alt="{{ stockimg.ticker }} Close Prediction">
+            {% endif %}
+            <img src="data:image/png;base64,{{ stockimg.volume_prediction }}" alt="{{ stockimg.ticker }} Volume">
+            <img src="data:image/png;base64,{{ stockimg.bollinger }}" alt="{{ stockimg.ticker }} Bollinger">
+            <img src="data:image/png;base64,{{ stockimg.overbought_oversold }}" alt="{{ stockimg.ticker }} Overbought/Oversold">
+        </div>
+        {% endfor %}
+    </div>
+</body>
+</html>

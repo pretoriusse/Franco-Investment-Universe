@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Manage Subscription</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <header>
+        <h1>Manage Your Subscription</h1>
+        <a href="{{ url_for('home') }}">Home</a>
+    </header>
+    <main>
+        <h2>Subscription Details</h2>
+        <p>Status: {{ subscription['data']['response']['status_text'] }}</p>
+        <p>Amount: R{{ subscription['data']['response']['amount'] / 100 }}</p>
+        <p>Frequency: {{ subscription['data']['response']['frequency'] }}</p>
+        <p>Next Run Date: {{ subscription['data']['response']['run_date'] }}</p>
+        <form method="post">
+            <button type="submit" name="action" value="update_card">Update Card Details</button>
+            <button type="submit" name="action" value="pause">Pause Subscription</button>
+            <button type="submit" name="action" value="unpause">Unpause Subscription</button>
+            <button type="submit" name="action" value="cancel">Cancel Subscription</button>
+        </form>
+    </main>
+</body>
+</html>

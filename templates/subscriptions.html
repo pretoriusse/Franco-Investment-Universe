@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block title %}Pricing — MarketWatch{% endblock %}
+{% block content %}
+<div class="subscription-container">
+    <p class="eyebrow" style="justify-content:center">Pricing</p>
+    <h1>Pick a plan. Start free.</h1>
+    <div class="subscription-cards">
+        {% for sub in subscriptions %}
+        <div class="subscription-card reveal {% if loop.index == 2 %}popular{% endif %}">
+            <div class="card-header">
+                <h2>{{ sub.name }}</h2>
+                <p>{{ sub.cost | int }}</p>
+                <span style="color:var(--faint);font-size:.82rem">per user / month · incl. VAT</span>
+            </div>
+            <div class="card-body">
+                <ul>
+                    {% for line in sub.detail.splitlines() %}
+                    {% if line.strip() %}<li>{{ line }}</li>{% endif %}
+                    {% endfor %}
+                </ul>
+            </div>
+            <div class="card-footer">
+                <a href="{{ url_for('register') }}" class="{% if loop.index == 2 %}btn-gold{% else %}btn-outline{% endif %}">Start free trial</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

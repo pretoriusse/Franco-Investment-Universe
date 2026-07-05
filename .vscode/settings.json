@@ -1,0 +1,17 @@
+{
+    "git.ignoreLimitWarning": true,
+    "sqltools.connections": [
+        {
+            "previewLimit": 50,
+            "server": "192.168.50.138",
+            "port": 5432,
+            "askForPassword": true,
+            "driver": "PostgreSQL",
+            "name": "FSrl SharesData",
+            "database": "sharesdata",
+            "username": "postgres",
+            "group": "FSrl"
+        }
+    ],
+    "python.REPL.enableREPLSmartSend": false
+}

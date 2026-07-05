@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}Admin - MarketWatch{% endblock %}
+{% block content %}
+<section class="hero" style="padding:40px 44px">
+    <div class="hero-content">
+        <h1>Admin Console</h1>
+        <p>Manage subscription tiers, feature access, and users — all in one place.</p>
+        <a class="btn" href="{{ url_for('admin_tiers') }}">Manage Tiers</a>
+        <a class="btn btn-outline" style="color:#fff;border-color:rgba(255,255,255,.4)" href="{{ url_for('admin_users') }}">Manage Users</a>
+    </div>
+</section>
+
+<div class="stat-grid">
+    <div class="stat-card reveal">
+        <div class="num" data-count="{{ stats.users }}">0</div>
+        <div class="label">Total users</div>
+    </div>
+    <div class="stat-card accent-blue reveal">
+        <div class="num" data-count="{{ stats.paid }}">0</div>
+        <div class="label">Paying</div>
+    </div>
+    <div class="stat-card accent-amber reveal">
+        <div class="num" data-count="{{ stats.admins }}">0</div>
+        <div class="label">Admins</div>
+    </div>
+    <div class="stat-card accent-slate reveal">
+        <div class="num" data-count="{{ stats.tiers }}">0</div>
+        <div class="label">Tiers</div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% block title %}Admin · Tiers - MarketWatch{% endblock %}
+{% block content %}
+<div class="page-head">
+    <h1>Subscription Tiers</h1>
+    <a class="crumb" href="{{ url_for('admin_dashboard') }}">&larr; Back to admin</a>
+</div>
+
+<div class="subscription-cards" style="justify-content:flex-start">
+    {% for row in rows %}
+    <div class="subscription-card reveal" style="width:340px">
+        <div class="card-header">
+            <h2>{{ row.tier.name }}</h2>
+            <p>R{{ '%.0f'|format(row.tier.cost) }}</p>
+        </div>
+        <form method="POST" action="{{ url_for('admin_tier_update', tier_id=row.tier.id) }}" style="padding:20px">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="form-group">
+                <label>Name</label>
+                <input type="text" name="name" value="{{ row.tier.name }}">
+            </div>
+            <div class="form-group">
+                <label>Cost (R)</label>
+                <input type="text" name="cost" value="{{ row.tier.cost }}">
+            </div>
+            <div class="form-group">
+                <label>Detail</label>
+                <input type="text" name="detail" value="{{ row.tier.detail }}">
+            </div>
+            <div class="switch-row">
+                <span>Company research</span>
+                <label class="switch"><input type="checkbox" name="company_research" {% if row.fn.company_research %}checked{% endif %}><span class="slider"></span></label>
+            </div>
+            <div class="switch-row">
+                <span>Portfolio</span>
+                <label class="switch"><input type="checkbox" name="portfolio" {% if row.fn.portfolio %}checked{% endif %}><span class="slider"></span></label>
+            </div>
+            <div class="switch-row">
+                <span>API access</span>
+                <label class="switch"><input type="checkbox" name="api_access" {% if row.fn.api_access %}checked{% endif %}><span class="slider"></span></label>
+            </div>
+            <button type="submit" class="btn btn-sm" style="margin-top:8px">Save changes</button>
+        </form>
+        <form method="POST" action="{{ url_for('admin_tier_delete', tier_id=row.tier.id) }}"
+              onsubmit="return confirm('Delete {{ row.tier.name }}?');" style="padding:0 20px 20px">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-sm btn-danger">Delete tier</button>
+        </form>
+    </div>
+    {% else %}
+    <p>No tiers yet.</p>
+    {% endfor %}
+</div>
+
+<h3 style="margin-top:32px">Create a Tier</h3>
+<form method="POST" action="{{ url_for('admin_tier_create') }}" class="portfolio-add-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="text" name="name" placeholder="Name" required>
+    <input type="text" name="cost" placeholder="Cost (R)">
+    <input type="text" name="detail" placeholder="Short description">
+    <button type="submit" class="btn">Create</button>
+</form>
+<p><small>New tiers start with all feature flags off — save the card to enable Research / Portfolio / API.</small></p>
+{% endblock %}

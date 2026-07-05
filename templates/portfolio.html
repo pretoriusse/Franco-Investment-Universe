@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+
+{% block title %}Portfolio - MarketWatch{% endblock %}
+
+{% block watermark %}{% include '_watermark.html' %}{% endblock %}
+{% block content %}
+<section class="hero">
+    <div class="hero-content">
+        <h1>Portfolio Overview</h1>
+        <p>Access your portfolio details and transaction history with the latest insights.</p>
+    </div>
+    <div class="hero-image">
+        <img src="{{ url_for('static', filename='images/portfolio_overview.jpg') }}" alt="Portfolio Overview">
+    </div>
+</section>
+
+<section class="portfolio-list">
+    <h2>Your Portfolio</h2>
+    <table class="table portfolio-table">
+        <thead>
+            <tr>
+                <th>Ticker</th>
+                <th>Weight</th>
+                <th>Price</th>
+                <th>Signal</th>
+                <th>Why</th>
+                <th>Comment</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in portfolio %}
+            <tr>
+                <td>{{ item.ticker }}</td>
+                <td>{{ item.weight }}</td>
+                <td>{{ '%.2f'|format(item.current_price) if item.current_price is not none else '—' }}</td>
+                <td class="signal-{{ item.verdict|lower }}"><strong>{{ item.verdict }}</strong></td>
+                <td>{{ item.reason }}</td>
+                <td>{{ item.comment }}</td>
+                <td>
+                    <form method="POST" action="{{ url_for('portfolio_delete', holding_id=item.id) }}" onsubmit="return confirm('Remove {{ item.ticker }}?');">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-sm btn-danger">Remove</button>
+                    </form>
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="7">No holdings yet — add one below.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h3>Add a Holding</h3>
+    <form method="POST" action="{{ url_for('portfolio_add') }}" class="portfolio-add-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="text" name="ticker" placeholder="Ticker (e.g. AGL.JO)" required>
+        <input type="text" name="weight" placeholder="Weight (optional)">
+        <input type="text" name="comment" placeholder="Comment (optional)">
+        <button type="submit" class="btn btn-primary">Add</button>
+    </form>
+</section>
+
+<section class="transaction-history">
+    <h2>Recent Transaction History</h2>
+    <table class="table transaction-table">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Comment</th>
+                <th>Debit/Credit</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for transaction in transactions %}
+            <tr>
+                <td>{{ transaction.date }}</td>
+                <td>{{ transaction.action }}</td>
+                <td>{{ transaction.value }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</section>
+{% endblock %}

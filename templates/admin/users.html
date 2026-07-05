@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% block title %}Admin · Users - MarketWatch{% endblock %}
+{% block content_class %}wide{% endblock %}
+{% block content %}
+<div class="page-head">
+    <h1>Users</h1>
+    <a class="crumb" href="{{ url_for('admin_dashboard') }}">&larr; Back to admin</a>
+</div>
+
+<div class="table-scroll">
+<table class="table compact reveal" style="min-width:900px">
+    <thead>
+        <tr>
+            <th>ID</th><th>Email</th><th>Name</th><th>Tier</th>
+            <th>Status</th><th>Expires</th><th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for u in users %}
+        <tr>
+            <td>{{ u.id }}</td>
+            <td>{{ u.email }}</td>
+            <td>{{ u.name }}</td>
+            <td>
+                <form method="POST" action="{{ url_for('admin_user_update', user_id=u.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="action" value="set_tier">
+                    <select name="tier_id" class="tier-select" onchange="this.form.submit()">
+                        <option value="">— none —</option>
+                        {% for t in tiers %}
+                        <option value="{{ t.id }}" {% if u.subscription_id == t.id %}selected{% endif %}>{{ t.name }}</option>
+                        {% endfor %}
+                    </select>
+                </form>
+            </td>
+            <td>
+                {% if u.subscription_paid %}<span class="badge badge-success"><span class="dot"></span>Paid</span>
+                {% else %}<span class="badge badge-muted">Unpaid</span>{% endif %}
+                {% if u.is_admin %}<span class="badge badge-admin">Admin</span>{% endif %}
+                {% if u.black_listed %}<span class="badge badge-danger"><span class="dot"></span>Blacklisted</span>{% endif %}
+            </td>
+            <td>{{ u.subscription_expiration_date }}</td>
+            <td>
+                <div class="btn-group">
+                    <form method="POST" action="{{ url_for('admin_user_update', user_id=u.id) }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="action" value="toggle_paid">
+                        <button class="btn btn-sm btn-outline" type="submit" title="Toggle paid">💳 Paid</button>
+                    </form>
+                    <form method="POST" action="{{ url_for('admin_user_update', user_id=u.id) }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="action" value="toggle_admin">
+                        <button class="btn btn-sm btn-outline" type="submit" title="Toggle admin">🛡 Admin</button>
+                    </form>
+                    <form method="POST" action="{{ url_for('admin_user_update', user_id=u.id) }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="action" value="toggle_blacklist">
+                        <button class="btn btn-sm btn-danger" type="submit" title="Toggle blacklist">⛔</button>
+                    </form>
+                    <form method="POST" action="{{ url_for('admin_user_update', user_id=u.id) }}" class="btn-group">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="action" value="extend">
+                        <input type="number" name="days" value="30" style="width:60px" aria-label="Days to extend">
+                        <button class="btn btn-sm" type="submit">+Days</button>
+                    </form>
+                </div>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+</div>
+{% endblock %}
